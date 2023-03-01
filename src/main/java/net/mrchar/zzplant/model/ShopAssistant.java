@@ -12,10 +12,13 @@ import java.util.UUID;
 public class ShopAssistant extends AbstractPersistable<UUID> {
     @Column(name = "code")
     private String code; // 工号
+
     @Column(name = "name")
     private String name; // 在店铺中的昵称，默认使用User的名称
+
     @Column(name = "title")
     private String title; // 头衔
+    
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private User user;

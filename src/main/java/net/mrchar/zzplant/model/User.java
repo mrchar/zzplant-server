@@ -20,6 +20,9 @@ public class User extends AbstractPersistable<UUID> {
     @Column(name = "gender")
     private Gender gender;
 
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "account_id")
     private Account account;
