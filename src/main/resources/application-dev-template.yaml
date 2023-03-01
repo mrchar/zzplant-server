@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://<host>:<port>/<database>
+    username: <username>
+    password: <password>
+  jpa:
+    hibernate:
+      ddl-auto: update
+  liquibase:
+    enabled: false
+  security:
+    user:
+      name: <name>
+      password: <password>
+      roles: [ "<role>" ]

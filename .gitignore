@@ -35,3 +35,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Spring Application Properties ###
+application-dev.yaml
+application-test.yaml
+application-stage.yaml
+application-prod.yaml
