@@ -13,10 +13,13 @@ import java.util.UUID;
 public class Shop extends AbstractPersistable<UUID> {
     @Column(name = "code")
     private String code;
+
     @Column(name = "name")
     private String name;
+
     @Column(name = "address")
     private String address;
+    
     @OneToOne
     @JoinColumn(name = "owner_id")
     private User owner;
