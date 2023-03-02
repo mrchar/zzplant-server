@@ -3,12 +3,14 @@ package net.mrchar.zzplant.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.util.UUID;
 
 @Getter
+@Setter
 @Entity
 @Table(name = "`account`")
 public class Account extends AbstractPersistable<UUID> {

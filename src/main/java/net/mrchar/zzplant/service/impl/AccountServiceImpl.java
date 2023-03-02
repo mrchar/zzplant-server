@@ -11,6 +11,7 @@ import net.mrchar.zzplant.service.AccountService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +21,7 @@ public class AccountServiceImpl implements AccountService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional
     public Account addAccount(String phoneNumber, String password) {
         String accountName = phoneNumber + RandomStringUtils.randomAlphanumeric(4).toLowerCase();
         password = this.passwordEncoder.encode(password);
@@ -30,6 +32,7 @@ public class AccountServiceImpl implements AccountService {
         User user = new User("user_" + phoneNumber, null, phoneNumber, account);
         this.userRepository.save(user);
 
+        account.setUser(user);
         return account;
     }
 

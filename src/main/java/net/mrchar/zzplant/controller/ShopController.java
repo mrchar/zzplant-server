@@ -1,6 +1,15 @@
 package net.mrchar.zzplant.controller;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import net.mrchar.zzplant.exception.UnExpectedException;
+import net.mrchar.zzplant.model.Shop;
+import net.mrchar.zzplant.model.ShopSchema;
+import net.mrchar.zzplant.model.User;
+import net.mrchar.zzplant.repository.UserRepository;
+import net.mrchar.zzplant.service.ShopService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -9,15 +18,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class ShopController {
-    @Data
-    public static class ShopSchema {
-        private String code;
-        private String name;
-        private String address;
-        private String owner;
-        private String company;
-    }
+    private final UserRepository userRepository;
+    private final ShopService shopService;
 
     @GetMapping("/shops")
     public List<ShopSchema> listShops() {
@@ -33,8 +37,21 @@ public class ShopController {
 
     @PostMapping("/shops")
     public ShopSchema addShop(@RequestBody SetShopRequest request) {
-        // 创建商铺
-        return null;
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnExpectedException("没有找到账户信息，请重新登录");
+        }
+
+        String accountName = authentication.getName();
+        if (accountName == null) {
+            throw new UnExpectedException("没有找到账户信息，请重新登录");
+        }
+
+        User user = this.userRepository.findOneByAccountName(accountName)
+                .orElseThrow(() -> new UnExpectedException("找不到当前账户对应的用户信息"));
+
+        Shop shop = this.shopService.addShop(request.getName(), request.getAddress(), user);
+        return ShopSchema.fromEntity(shop);
     }
 
     @PutMapping("/shops/{shopCode}")
