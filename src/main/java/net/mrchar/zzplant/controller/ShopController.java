@@ -19,7 +19,7 @@ public class ShopController {
         private String company;
     }
 
-    @GetMapping("/shop")
+    @GetMapping("/shops")
     public List<ShopSchema> listShops() {
         // 获取商铺列表
         return Collections.emptyList();
@@ -31,13 +31,13 @@ public class ShopController {
         private String address;
     }
 
-    @PostMapping("/shop")
+    @PostMapping("/shops")
     public ShopSchema addShop(@RequestBody SetShopRequest request) {
         // 创建商铺
         return null;
     }
 
-    @PutMapping("/shop/{shopCode}")
+    @PutMapping("/shops/{shopCode}")
     public ShopSchema updateShop(@PathVariable String shopCode, // 商铺编号
                                  @RequestBody SetShopRequest request) {
         // 设置商铺
@@ -52,7 +52,7 @@ public class ShopController {
         private String shopName;
     }
 
-    @GetMapping("/shop/{shopCode}/assistants")
+    @GetMapping("/shops/{shopCode}/assistants")
     public List<ShopAssistantSchema> listShopAssistants(@PathVariable String shopCode) {
         // 列出商店的所有员工
         return Collections.emptyList();
@@ -65,7 +65,7 @@ public class ShopController {
     }
 
 
-    @PostMapping("/shop/{shopCode}/assistant")
+    @PostMapping("/shops/{shopCode}/assistant")
     public ShopAssistantSchema addShopAssistant(@PathVariable String shopCode, // 商铺编号
                                                 @RequestBody AddShopAssistant request) {
         // 添加店员
@@ -73,7 +73,7 @@ public class ShopController {
     }
 
 
-    @DeleteMapping("/shop/{shopCode}/assistants/{AssistantCode}")
+    @DeleteMapping("/shops/{shopCode}/assistants/{AssistantCode}")
     public ShopAssistantSchema removeAssistant(@PathVariable String shopCode,
                                                @PathVariable String AssistantCode) {
         // 移除店员
@@ -90,7 +90,7 @@ public class ShopController {
     }
 
 
-    @GetMapping("/shop/{shopCode}/account")
+    @GetMapping("/shops/{shopCode}/accounts")
     public List<ShopAccountSchema> listShopAccounts(@PathVariable String shopCode) {
         return Collections.emptyList();
     }
@@ -102,14 +102,14 @@ public class ShopController {
         private String phoneNumber;
     }
 
-    @PostMapping("/shop/{shopCode}/account")
+    @PostMapping("/shops/{shopCode}/accounts")
     public ShopAccountSchema addShopAccount(@PathVariable String shopCode,
                                             @RequestBody AddShopAccountRequest request) {
         // 添加会员
         return null;
     }
 
-    @DeleteMapping("/shop/{shopCode}/account/{accountCode}")
+    @DeleteMapping("/shops/{shopCode}/accounts/{accountCode}")
     public ShopAccountSchema removeShopAccount(@PathVariable String shopCode,
                                                @PathVariable String accountCode) {
         // 移除会员

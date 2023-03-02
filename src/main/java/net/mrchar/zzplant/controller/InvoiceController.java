@@ -28,7 +28,7 @@ public class InvoiceController {
         private String shop;
     }
 
-    @GetMapping("/shop/{shopCode}/invoice")
+    @GetMapping("/shops/{shopCode}/invoices")
     public List<InvoiceSchema> listInvoice(@PathVariable String shopCode) {
         // 列出订单
         return Collections.emptyList();
@@ -40,13 +40,13 @@ public class InvoiceController {
         private List<CommoditySchema> commodities;
     }
 
-    @GetMapping("/shop/{shopCode}/invoice")
+    @GetMapping("/shops/{shopCode}/invoices")
     public InvoiceSchema addInvoice(@PathVariable String shopCode, @RequestBody AddInvoiceRequest request) {
         // 创建订单
         return null;
     }
 
-    @PutMapping("/shop/{shopCode}/invoice/{invoiceCode}/commodities")
+    @PutMapping("/shops/{shopCode}/invoices/{invoiceCode}/commodities")
     public List<CommoditySchema> updateInvoice(@PathVariable String shopCode,
                                                @PathVariable String invoiceCode,
                                                @RequestBody List<CommoditySchema> request) {
@@ -54,7 +54,7 @@ public class InvoiceController {
         return Collections.emptyList();
     }
 
-    @DeleteMapping("/shop/{shopCode}/invoice/{invoiceCode}")
+    @DeleteMapping("/shops/{shopCode}/invoices/{invoiceCode}")
     public void deleteInvoice(@PathVariable String shopCode, @PathVariable String invoiceCode) {
         // 删除订单
     }
@@ -67,7 +67,7 @@ public class InvoiceController {
     }
 
     // 确认订单
-    @PostMapping("/shop/{shopCode}/payment")
+    @PostMapping("/shops/{shopCode}/payment")
     public InvoiceSchema confirmInvoice(@PathVariable String shopCode,
                                         @RequestBody ConfirmInvoiceRequest request) {
         // 确认支付

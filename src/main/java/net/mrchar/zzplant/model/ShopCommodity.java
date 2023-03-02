@@ -15,9 +15,13 @@ import java.util.UUID;
 public class ShopCommodity extends AbstractPersistable<UUID> {
     @Column(name = "code")
     private String code; // 商品编号
+
     @Column(name = "name")
     private String name;
 
     @Column(name = "price")
     private BigDecimal price;
+
+    @Column(name = "off_shelf")
+    private boolean offShelf;
 }
