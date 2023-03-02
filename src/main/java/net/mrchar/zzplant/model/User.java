@@ -21,7 +21,7 @@ public class User extends AbstractPersistable<UUID> {
     @Enumerated(STRING)
     @Column(name = "gender")
     private Gender gender;
-    
+
     @Column(name = "phone_number")
     private String phoneNumber;
 
@@ -30,6 +30,11 @@ public class User extends AbstractPersistable<UUID> {
     private Account account;
 
     public User() {
+    }
+
+    public User(String name, String phoneNumber) {
+        this.name = name;
+        this.phoneNumber = phoneNumber;
     }
 
     public User(String name, Gender gender, String phoneNumber, Account account) {
