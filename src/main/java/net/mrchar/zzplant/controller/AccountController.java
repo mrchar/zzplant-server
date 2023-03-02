@@ -1,6 +1,8 @@
 package net.mrchar.zzplant.controller;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import net.mrchar.zzplant.service.AccountService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -8,7 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class AccountController {
+    private final AccountService accountService;
+
     @Data
     public static class RegisterRequest {
         private String phoneNumber;
@@ -17,7 +22,7 @@ public class AccountController {
 
     @PostMapping("/register")
     public void register(@RequestBody RegisterRequest request) {
-        // 创建账户
+        this.accountService.addAccount(request.getPhoneNumber(), request.getPassword());
     }
 
     @Data

@@ -40,7 +40,7 @@ public class InvoiceController {
         private List<CommoditySchema> commodities;
     }
 
-    @GetMapping("/shops/{shopCode}/invoices")
+    @PostMapping("/shops/{shopCode}/invoices")
     public InvoiceSchema addInvoice(@PathVariable String shopCode, @RequestBody AddInvoiceRequest request) {
         // 创建订单
         return null;
