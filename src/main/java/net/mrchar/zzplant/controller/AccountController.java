@@ -2,7 +2,11 @@ package net.mrchar.zzplant.controller;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import net.mrchar.zzplant.exception.UnExpectedException;
+import net.mrchar.zzplant.model.Gender;
 import net.mrchar.zzplant.service.AccountService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,11 +33,18 @@ public class AccountController {
     public static class SetProfileRequest {
         private String name;
         private String gender;
-        private String phoneNumber;
     }
 
     @PostMapping("/profile")
     public void setProfile(@RequestBody SetProfileRequest request) {
-        // 设置用户信息
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnExpectedException("无法获取用户身份");
+        }
+
+        String accountName = authentication.getName();
+        String username = request.getName();
+        Gender gender = Gender.fromString(request.getGender());
+        this.accountService.setProfile(accountName, username, gender);
     }
 }
