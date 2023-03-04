@@ -50,6 +50,6 @@ public interface ShopRepository extends JpaRepository<Shop, UUID> {
      * @param owner    商铺所有者
      * @return 商铺信息
      */
-    @Query("select (count(1) > 0) from Shop shop where shop.code = :shopCode and shop.owner.id = :#{#user.id}")
+    @Query("select (count(1) > 0) from Shop shop where shop.code = :shopCode and shop.owner.id = :#{#owner.id}")
     boolean existsByShopCodeAndOwner(String shopCode, User owner);
 }

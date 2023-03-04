@@ -14,11 +14,17 @@ import java.util.UUID;
 @Entity
 @Table(name = "`shop_account`")
 public class ShopAccount extends AbstractPersistable<UUID> {
+    public static final String VIP = "会员";
+
     @Column(name = "code")
     private String code; // 用户在当前店铺开通的账户的编号
 
     @Column(name = "name")
     private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gender")
+    private Gender gender;
 
     @Column(name = "password")
     private String password; // 顾客在当前商铺的付款密码
@@ -39,8 +45,21 @@ public class ShopAccount extends AbstractPersistable<UUID> {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "shop_id")
     private Shop shop;
-    
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "company_id")
     private Company company;
+
+    public ShopAccount() {
+    }
+
+    public ShopAccount(String code, String name, Gender gender, String title, String phoneNumber, BigDecimal balance, Shop shop) {
+        this.code = code;
+        this.name = name;
+        this.gender = gender;
+        this.title = title;
+        this.phoneNumber = phoneNumber;
+        this.balance = balance;
+        this.shop = shop;
+    }
 }

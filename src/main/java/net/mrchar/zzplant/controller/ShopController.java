@@ -2,11 +2,11 @@ package net.mrchar.zzplant.controller;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import net.mrchar.zzplant.exception.ForbiddenOperationException;
 import net.mrchar.zzplant.exception.ResourceNotExistsException;
 import net.mrchar.zzplant.exception.UnExpectedException;
-import net.mrchar.zzplant.model.Shop;
-import net.mrchar.zzplant.model.ShopAssistant;
-import net.mrchar.zzplant.model.User;
+import net.mrchar.zzplant.model.*;
+import net.mrchar.zzplant.repository.ShopAccountRepository;
 import net.mrchar.zzplant.repository.ShopAssistantRepository;
 import net.mrchar.zzplant.repository.ShopRepository;
 import net.mrchar.zzplant.repository.UserRepository;
@@ -19,8 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -29,6 +27,7 @@ public class ShopController {
     private final UserRepository userRepository;
     private final ShopRepository shopRepository;
     private final ShopAssistantRepository assistantRepository;
+    private final ShopAccountRepository shopAccountRepository;
     private final ShopService shopService;
 
     @Data
@@ -180,12 +179,36 @@ public class ShopController {
         private String phoneNumber;
         private BigDecimal balance;
         private String shop;
+
+        public ShopAccountSchema(String code, String name, String phoneNumber, BigDecimal balance) {
+            this.code = code;
+            this.name = name;
+            this.phoneNumber = phoneNumber;
+            this.balance = balance;
+        }
+
+        public static ShopAccountSchema fromEntity(ShopAccount entity) {
+            ShopAccountSchema schema = new ShopAccountSchema(
+                    entity.getCode(),
+                    entity.getName(),
+                    entity.getPhoneNumber(),
+                    entity.getBalance()
+            );
+
+            if (entity.getShop() != null) {
+                schema.setShop(entity.getShop().getCode());
+            }
+
+            return schema;
+        }
     }
 
 
     @GetMapping("/shops/{shopCode}/accounts")
-    public List<ShopAccountSchema> listShopAccounts(@PathVariable String shopCode) {
-        return Collections.emptyList();
+    @Transactional
+    public Page<ShopAccountSchema> listShopAccounts(@PathVariable String shopCode, Pageable pageable) {
+        Page<ShopAccount> entities = this.shopAccountRepository.findAllByShopCode(shopCode, pageable);
+        return entities.map(ShopAccountSchema::fromEntity);
     }
 
     @Data
@@ -198,8 +221,19 @@ public class ShopController {
     @PostMapping("/shops/{shopCode}/accounts")
     public ShopAccountSchema addShopAccount(@PathVariable String shopCode,
                                             @RequestBody AddShopAccountRequest request) {
+        User operator = this.getCurrentOperator();
+        boolean exists = this.shopRepository.existsByShopCodeAndOwner(shopCode, operator);
+        if (!exists) {
+            throw new ForbiddenOperationException("只有商铺的所有者可以创建会员");
+        }
+
+
+        ShopAccount entity = shopService.addShopAccount(
+                shopCode, request.getName(),
+                Gender.fromString(request.getGender()),
+                request.getPhoneNumber());
         // 添加会员
-        return null;
+        return ShopAccountSchema.fromEntity(entity);
     }
 
     @DeleteMapping("/shops/{shopCode}/accounts/{accountCode}")
