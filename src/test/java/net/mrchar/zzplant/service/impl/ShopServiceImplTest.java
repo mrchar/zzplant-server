@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Map;
 
 import static net.mrchar.zzplant.model.Gender.FEMALE;
 import static net.mrchar.zzplant.model.Gender.MALE;
@@ -68,5 +69,26 @@ class ShopServiceImplTest {
         assertThat(shopAccount.getPhoneNumber()).isEqualTo(shopAccountPhoneNumber);
         assertThat(shopAccount.getShop().getCode()).isEqualTo(shop.getCode());
         assertThat(shopAccount.getBalance()).isEqualTo(BigDecimal.ZERO);
+    }
+
+    @Test
+    void addInvoice() {
+        Account account = this.accountService.addAccount("15888888888", "password");
+        User user = this.userRepository.findOneByAccountName(account.getName()).orElseThrow();
+
+        String shopName = RandomStringUtils.randomAlphanumeric(10, 50);
+        String address = RandomStringUtils.randomAlphanumeric(20, 100);
+        Shop shop = this.shopService.addShop(shopName, address, user);
+
+        String shopAccountName = RandomStringUtils.randomAlphanumeric(1, 10);
+        Gender gender = Arrays.asList(MALE, FEMALE, null).get(RandomUtils.nextInt(0, 3));
+        String shopAccountPhoneNumber = RandomStringUtils.randomNumeric(11);
+        ShopAccount shopAccount = this.shopService.addShopAccount(shop.getCode(), shopAccountName, gender, shopAccountPhoneNumber);
+
+        // TODO: 添加商品
+
+        ShopInvoice shopInvoice = this.shopService.addInvoice(shop.getCode(), account.getCode(), Map.of());
+
+        // 添加断言
     }
 }

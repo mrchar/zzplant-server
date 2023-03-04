@@ -2,6 +2,7 @@ package net.mrchar.zzplant.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import net.mrchar.zzplant.exception.ResourceAlreadyExistsException;
+import net.mrchar.zzplant.exception.ResourceNotExistsException;
 import net.mrchar.zzplant.exception.UnExpectedException;
 import net.mrchar.zzplant.model.*;
 import net.mrchar.zzplant.repository.*;
@@ -11,8 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static net.mrchar.zzplant.model.ShopAccount.VIP;
 
@@ -27,6 +31,7 @@ public class ShopServiceImpl implements ShopService {
     private final ShopRepository shopRepository;
     private final ShopAssistantRepository assistantRepository;
     private final ShopAccountRepository shopAccountRepository;
+    private final ShopInvoiceRepository invoiceRepository;
 
     @Override
     @Transactional
@@ -84,5 +89,44 @@ public class ShopServiceImpl implements ShopService {
         this.shopAccountRepository.save(shopAccount);
 
         return shopAccount;
+    }
+
+
+    @Override
+    public ShopInvoice addInvoice(String shopCode, String accountCode, Map<String, Integer> commodities) {
+        Shop shop = this.shopRepository.findOneByCode(shopCode)
+                .orElseThrow(() -> new ResourceNotExistsException("店铺不存在"));
+
+        ShopAccount shopAccount = this.shopAccountRepository.findOneByShopCodeAndCode(shopCode, accountCode)
+                .orElseThrow(() -> new ResourceNotExistsException("会员不存在"));
+
+        List<ShopCommodity> commodityEntities = this.invoiceRepository
+                .findAllByShopCodeAndCodeIn(shopCode, commodities.keySet());
+        Set<ShopInvoiceCommodity> shopInvoiceCommodities = commodityEntities.stream()
+                .map(entity -> {
+                    // 获取商品数量
+                    Integer quantity = commodities.get(entity.getCode());
+                    // 获取当前商品总价
+                    BigDecimal amount = entity.getPrice().multiply(BigDecimal.valueOf(quantity));
+                    return ShopInvoiceCommodity
+                            .builder()
+                            .withCode(entity.getCode())
+                            .withName(entity.getName())
+                            .withPrice(entity.getPrice())
+                            .withQuantity(quantity)
+                            .withAmount(amount)
+                            .build();
+                })
+                .collect(Collectors.toSet());
+        // 计算账单总价
+        BigDecimal amount = commodityEntities.stream()
+                .reduce(BigDecimal.ZERO, (sum, commodity) -> {
+                    sum.add(commodity.getPrice());
+                    return sum;
+                }, null);
+
+        String invoiceCode = RandomStringUtils.randomAlphanumeric(16);
+        ShopInvoice shopInvoice = new ShopInvoice(invoiceCode, shopInvoiceCommodities, amount, shopAccount, shop);
+        return this.invoiceRepository.save(shopInvoice);
     }
 }

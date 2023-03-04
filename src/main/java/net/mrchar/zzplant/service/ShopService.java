@@ -2,6 +2,8 @@ package net.mrchar.zzplant.service;
 
 import net.mrchar.zzplant.model.*;
 
+import java.util.Map;
+
 public interface ShopService {
     /**
      * 创建商铺
@@ -33,4 +35,14 @@ public interface ShopService {
      * @return 会员信息
      */
     ShopAccount addShopAccount(String shopCode, String name, Gender gender, String phoneNumber);
+
+    /**
+     * 创建账单
+     *
+     * @param shopCode       商铺编号
+     * @param accountCode    会员编号
+     * @param commodityCodes 商品编号列表
+     * @return 账单信息
+     */
+    ShopInvoice addInvoice(String shopCode, String accountCode, Map<String, Integer> commodityCodes);
 }

@@ -37,4 +37,19 @@ public class ShopInvoice extends AbstractPersistable<UUID> {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id")
     private Company company;
+
+    public ShopInvoice() {
+    }
+
+    public ShopInvoice(String code,
+                       Set<ShopInvoiceCommodity> commodities,
+                       BigDecimal amount,
+                       ShopAccount account,
+                       Shop shop) {
+        this.code = code;
+        this.commodities = commodities;
+        this.amount = amount;
+        this.account = account;
+        this.shop = shop;
+    }
 }

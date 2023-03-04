@@ -40,4 +40,14 @@ public interface ShopAccountRepository extends JpaRepository<ShopAccount, UUID> 
      */
     @Query("select (count(1) > 0) from ShopAccount account where account.shop.code = :shopCode and account.phoneNumber = :phoneNumber")
     boolean existsByShopCodeAndPhoneNumber(String shopCode, String phoneNumber);
+
+    /**
+     * 在指定商铺中查找会员
+     *
+     * @param shopCode    商铺编号
+     * @param accountCode 会员编号
+     * @return 会员信息
+     */
+    @Query("select account from ShopAccount account where account.shop.code = :shopCode and account.code = :accountCode")
+    Optional<ShopAccount> findOneByShopCodeAndCode(String shopCode, String accountCode);
 }
