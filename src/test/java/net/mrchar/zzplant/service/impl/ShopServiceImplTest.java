@@ -30,6 +30,8 @@ class ShopServiceImplTest {
     AccountService accountService;
     @Autowired
     ShopService shopService;
+    @Autowired
+    MockShopServiceTool mockShopServiceTool;
 
     @Test
     @Transactional
@@ -50,13 +52,22 @@ class ShopServiceImplTest {
     }
 
     @Test
-    void addShopAccount() {
-        Account account = this.accountService.addAccount("15888888888", "password");
-        User user = this.userRepository.findOneByAccountName(account.getName()).orElseThrow();
+    @Transactional
+    void addShopCommodity() {
+        Shop shop = this.mockShopServiceTool.addShop();
 
-        String shopName = RandomStringUtils.randomAlphanumeric(10, 50);
-        String address = RandomStringUtils.randomAlphanumeric(20, 100);
-        Shop shop = this.shopService.addShop(shopName, address, user);
+        String commodityName = RandomStringUtils.randomAlphanumeric(2, 20);
+        BigDecimal price = BigDecimal.valueOf(RandomUtils.nextDouble(0, Float.MAX_VALUE));
+        ShopCommodity shopCommodity = this.shopService.addShopCommodity(shop.getCode(), commodityName, price);
+        assertThat(shopCommodity.getCode()).isNotBlank();
+        assertThat(shopCommodity.getName()).isEqualTo(commodityName);
+        assertThat(shopCommodity.getPrice()).isEqualTo(price);
+        assertThat(shopCommodity.getShop()).isEqualTo(shop);
+    }
+
+    @Test
+    void addShopAccount() {
+        Shop shop = this.mockShopServiceTool.addShop();
 
         String shopAccountName = RandomStringUtils.randomAlphanumeric(1, 10);
         Gender gender = Arrays.asList(MALE, FEMALE, null).get(RandomUtils.nextInt(0, 3));
@@ -73,12 +84,7 @@ class ShopServiceImplTest {
 
     @Test
     void addInvoice() {
-        Account account = this.accountService.addAccount("15888888888", "password");
-        User user = this.userRepository.findOneByAccountName(account.getName()).orElseThrow();
-
-        String shopName = RandomStringUtils.randomAlphanumeric(10, 50);
-        String address = RandomStringUtils.randomAlphanumeric(20, 100);
-        Shop shop = this.shopService.addShop(shopName, address, user);
+        Shop shop = this.mockShopServiceTool.addShop();
 
         String shopAccountName = RandomStringUtils.randomAlphanumeric(1, 10);
         Gender gender = Arrays.asList(MALE, FEMALE, null).get(RandomUtils.nextInt(0, 3));
@@ -87,7 +93,7 @@ class ShopServiceImplTest {
 
         // TODO: 添加商品
 
-        ShopInvoice shopInvoice = this.shopService.addInvoice(shop.getCode(), account.getCode(), Map.of());
+        ShopInvoice shopInvoice = this.shopService.addInvoice(shop.getCode(), shopAccount.getCode(), Map.of());
 
         // 添加断言
     }

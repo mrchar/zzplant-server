@@ -8,6 +8,8 @@ import net.mrchar.zzplant.model.*;
 import net.mrchar.zzplant.repository.*;
 import net.mrchar.zzplant.service.ShopService;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,12 +26,14 @@ import static net.mrchar.zzplant.model.ShopAccount.VIP;
 @RequiredArgsConstructor
 public class ShopServiceImpl implements ShopService {
     private static final Integer SHOP_CODE_LENGTH = 10;
+    private static final Integer COMMODITY_CODE_LENGTH = 10;
     private static final Integer SHOP_ACCOUNT_CODE_LENGTH = 10;
 
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final ShopRepository shopRepository;
     private final ShopAssistantRepository assistantRepository;
+    private final ShopCommodityRepository commodityRepository;
     private final ShopAccountRepository shopAccountRepository;
     private final ShopInvoiceRepository invoiceRepository;
 
@@ -70,6 +74,22 @@ public class ShopServiceImpl implements ShopService {
         this.assistantRepository.save(assistant);
 
         return assistant;
+    }
+
+    @Override
+    @Transactional
+    public ShopCommodity addShopCommodity(String shopCode, String name, BigDecimal price) {
+        Shop shop = this.shopRepository.findOneByCode(shopCode)
+                .orElseThrow(() -> new ResourceNotExistsException("店铺不存在"));
+
+        this.commodityRepository.findOneByShopAndName(shop, name)
+                .ifPresent((commodity) -> {
+                    throw new ResourceAlreadyExistsException("商品名称不能重复");
+                });
+
+        String commodityCode = RandomStringUtils.randomAlphanumeric(COMMODITY_CODE_LENGTH);
+        ShopCommodity shopCommodity = new ShopCommodity(commodityCode, name, price, false, shop);
+        return this.commodityRepository.save(shopCommodity);
     }
 
     @Override
@@ -128,5 +148,16 @@ public class ShopServiceImpl implements ShopService {
         String invoiceCode = RandomStringUtils.randomAlphanumeric(16);
         ShopInvoice shopInvoice = new ShopInvoice(invoiceCode, shopInvoiceCommodities, amount, shopAccount, shop);
         return this.invoiceRepository.save(shopInvoice);
+    }
+
+    @Override
+    public boolean operatorIsAssistant(String shopCode) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null) {
+            return false;
+        }
+
+        return this.assistantRepository
+                .existsByShopCodeAndAccountName(shopCode, authentication.getName());
     }
 }

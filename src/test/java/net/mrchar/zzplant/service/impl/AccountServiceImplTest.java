@@ -27,6 +27,8 @@ class AccountServiceImplTest {
     UserRepository userRepository;
     @Autowired
     AccountService accountService;
+    @Autowired
+    MockAccountServiceTool mockAccountServiceTool;
 
     @Test
     @Transactional
@@ -42,9 +44,7 @@ class AccountServiceImplTest {
     @Test
     @Transactional
     void setProfile() {
-        String phoneNumber = RandomStringUtils.randomNumeric(11);
-        String password = RandomStringUtils.randomAlphanumeric(6, 20);
-        Account account = this.accountService.addAccount(phoneNumber, password);
+        Account account = this.mockAccountServiceTool.addAccount();
 
         String username = RandomStringUtils.randomAlphanumeric(5, 10);
         Gender gender = Arrays.asList(MALE, FEMALE, null).get(RandomUtils.nextInt(0, 3));

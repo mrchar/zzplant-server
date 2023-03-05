@@ -3,18 +3,14 @@ package net.mrchar.zzplant.controller;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import net.mrchar.zzplant.exception.ForbiddenOperationException;
-import net.mrchar.zzplant.exception.UnExpectedException;
 import net.mrchar.zzplant.model.ShopInvoice;
 import net.mrchar.zzplant.model.ShopInvoiceCommodity;
-import net.mrchar.zzplant.model.User;
 import net.mrchar.zzplant.repository.ShopInvoiceRepository;
 import net.mrchar.zzplant.repository.ShopRepository;
 import net.mrchar.zzplant.repository.UserRepository;
 import net.mrchar.zzplant.service.ShopService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -90,9 +86,9 @@ public class InvoiceController {
     @GetMapping("/shops/{shopCode}/invoices")
     @Transactional
     public Page<InvoiceSchema> listInvoice(@PathVariable String shopCode, Pageable pageable) {
-        boolean exists = ifOperatorIsShopOwner(shopCode);
+        boolean exists = this.shopService.operatorIsAssistant(shopCode);
         if (!exists) {
-            throw new ForbiddenOperationException("只有当前店铺的所有着才可以进行操作");
+            throw new ForbiddenOperationException("您没有权限执行这个操作");
         }
 
         Page<ShopInvoice> entities = this.invoiceRepository.findAllByShopCode(shopCode, pageable);
@@ -108,11 +104,9 @@ public class InvoiceController {
 
     @PostMapping("/shops/{shopCode}/invoices")
     public InvoiceSchema addInvoice(@PathVariable String shopCode, @RequestBody AddInvoiceRequest request) {
-        boolean exists = ifOperatorIsShopOwner(shopCode);
+        boolean exists = this.shopService.operatorIsAssistant(shopCode);
         if (!exists) {
-            throw new ForbiddenOperationException("只有当前店铺的所有着才可以进行操作");
-
-
+            throw new ForbiddenOperationException("您没有权限执行这个操作");
         }
 
         ShopInvoice shopInvoice = this.shopService
@@ -149,19 +143,4 @@ public class InvoiceController {
         // 确认支付
         return null;
     }
-
-    private boolean ifOperatorIsShopOwner(String shopCode) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null) {
-            throw new UnExpectedException("获取不到当前正在操作的用户的信息");
-        }
-
-        String accountName = authentication.getName();
-        User owner = this.userRepository.findOneByAccountName(accountName)
-                .orElseThrow(() -> new UnExpectedException("获取不到当前正在操作的用户的信息"));
-
-        boolean exists = this.shopRepository.existsByShopCodeAndOwner(shopCode, owner);
-        return exists;
-    }
-
 }

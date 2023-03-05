@@ -6,6 +6,7 @@ import net.mrchar.zzplant.model.Account;
 import net.mrchar.zzplant.model.Gender;
 import net.mrchar.zzplant.model.User;
 import net.mrchar.zzplant.repository.AccountRepository;
+import net.mrchar.zzplant.repository.ShopAssistantRepository;
 import net.mrchar.zzplant.repository.UserRepository;
 import net.mrchar.zzplant.service.AccountService;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
+    private final ShopAssistantRepository shopAssistantRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override

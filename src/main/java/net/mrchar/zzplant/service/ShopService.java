@@ -2,6 +2,7 @@ package net.mrchar.zzplant.service;
 
 import net.mrchar.zzplant.model.*;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 public interface ShopService {
@@ -26,6 +27,16 @@ public interface ShopService {
     ShopAssistant addShopAssistant(String shopCode, String username, String phoneNumber);
 
     /**
+     * 在商铺中添加商品
+     *
+     * @param shopCode
+     * @param name
+     * @param price
+     * @return
+     */
+    ShopCommodity addShopCommodity(String shopCode, String name, BigDecimal price);
+
+    /**
      * 在商铺中添加会员
      *
      * @param shopCode    商铺编码
@@ -45,4 +56,12 @@ public interface ShopService {
      * @return 账单信息
      */
     ShopInvoice addInvoice(String shopCode, String accountCode, Map<String, Integer> commodityCodes);
+
+    /**
+     * 判断当前操作的用户是否是指定店铺的店员
+     *
+     * @param shopCode 判断当前用户是否是指定店铺的店员
+     * @return
+     */
+    boolean operatorIsAssistant(String shopCode);
 }

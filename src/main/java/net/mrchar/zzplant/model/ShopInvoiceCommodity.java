@@ -2,6 +2,7 @@ package net.mrchar.zzplant.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,6 +13,7 @@ import java.math.BigDecimal;
 @Setter
 @Embeddable
 @Builder(setterPrefix = "with")
+@AllArgsConstructor
 public class ShopInvoiceCommodity {
     @Column(name = "code")
     private String code;

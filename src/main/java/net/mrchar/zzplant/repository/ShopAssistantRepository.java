@@ -20,4 +20,17 @@ public interface ShopAssistantRepository extends JpaRepository<ShopAssistant, UU
      */
     @Query("select assistant from ShopAssistant assistant where assistant.shop.code = :shopCode")
     Page<ShopAssistant> findAllByShopCode(String shopCode, Pageable pageable);
+
+
+    /**
+     * 判断用户是否是商户的店员
+     *
+     * @param shopCode    商铺编号
+     * @param accountName 账户名称
+     * @return 是否是店铺员工
+     */
+    @Query("select (count(1) > 0) from ShopAssistant assistant " +
+            "where assistant.shop.code = :shopCode " +
+            "and assistant.user.account.name = :accountName")
+    boolean existsByShopCodeAndAccountName(String shopCode, String accountName);
 }
