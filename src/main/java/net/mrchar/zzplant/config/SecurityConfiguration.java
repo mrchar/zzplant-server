@@ -27,8 +27,8 @@ public class SecurityConfiguration {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(this.properties.getOrigins());
-        configuration.setAllowedHeaders(this.properties.getHeaders());
         configuration.setAllowedMethods(this.properties.getMethods());
+        configuration.setAllowedHeaders(this.properties.getHeaders());
         configuration.setAllowCredentials(this.properties.isWithCredentials());
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -44,6 +44,8 @@ public class SecurityConfiguration {
 
         http.formLogin().loginProcessingUrl("/api/login");
         http.logout().logoutUrl("/api/logout");
+        http.cors();
+        http.csrf().disable();
         return http.build();
     }
 }

@@ -13,3 +13,5 @@ spring:
       name: <name>
       password: <password>
       roles: [ "<role>" ]
+cors:
+  origins: "http://127.0.0.1:5173"
