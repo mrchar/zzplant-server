@@ -14,6 +14,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "`account`")
 public class Account extends AbstractPersistable<UUID> {
+    private static final int CODE_LENGTH = 8;
+
     @Column(name = "code")
     private String code; // 账户编码，系统外部索引
 
@@ -36,6 +38,8 @@ public class Account extends AbstractPersistable<UUID> {
 
     @PrePersist
     public void init() {
-        this.code = RandomStringUtils.randomAlphanumeric(8).toLowerCase();
+        this.code = RandomStringUtils
+                .randomAlphanumeric(CODE_LENGTH)
+                .toLowerCase();
     }
 }

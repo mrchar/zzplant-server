@@ -20,4 +20,13 @@ public class Company extends AbstractPersistable<UUID> {
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_id")
     private User user;
+
+    public Company() {
+    }
+
+    public Company(String code, String name, User user) {
+        this.code = code;
+        this.name = name;
+        this.user = user;
+    }
 }

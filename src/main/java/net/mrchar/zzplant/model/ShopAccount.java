@@ -4,6 +4,7 @@ package net.mrchar.zzplant.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.math.BigDecimal;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "`shop_account`")
 public class ShopAccount extends AbstractPersistable<UUID> {
+    private static final Integer SHOP_ACCOUNT_CODE_LENGTH = 10;
     public static final String VIP = "会员";
 
     @Column(name = "code")
@@ -26,9 +28,6 @@ public class ShopAccount extends AbstractPersistable<UUID> {
     @Column(name = "gender")
     private Gender gender;
 
-    @Column(name = "password")
-    private String password; // 顾客在当前商铺的付款密码
-
     @Column(name = "title")
     private String title; // 会员等级
 
@@ -38,6 +37,9 @@ public class ShopAccount extends AbstractPersistable<UUID> {
     @Column(name = "balance")
     private BigDecimal balance; // 余额
 
+    @Column(name = "password")
+    private String password; // 顾客在当前商铺的付款密码
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private User user;
@@ -46,20 +48,20 @@ public class ShopAccount extends AbstractPersistable<UUID> {
     @JoinColumn(name = "shop_id")
     private Shop shop;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "company_id")
-    private Company company;
-
     public ShopAccount() {
     }
 
-    public ShopAccount(String code, String name, Gender gender, String title, String phoneNumber, BigDecimal balance, Shop shop) {
-        this.code = code;
+    public ShopAccount(String name, Gender gender, String title, String phoneNumber, BigDecimal balance, Shop shop) {
         this.name = name;
         this.gender = gender;
         this.title = title;
         this.phoneNumber = phoneNumber;
         this.balance = balance;
         this.shop = shop;
+    }
+
+    @PrePersist
+    public void init() {
+        this.code = RandomStringUtils.randomAlphanumeric(SHOP_ACCOUNT_CODE_LENGTH).toLowerCase();
     }
 }

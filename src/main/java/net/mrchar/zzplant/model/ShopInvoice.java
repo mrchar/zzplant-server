@@ -3,6 +3,7 @@ package net.mrchar.zzplant.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.math.BigDecimal;
@@ -14,6 +15,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "`shop_invoice`")
 public class ShopInvoice extends AbstractPersistable<UUID> {
+    private static final int CODE_LENGTH = 16;
+
     @Column(name = "code")
     private String code; // 流水号
 
@@ -34,22 +37,23 @@ public class ShopInvoice extends AbstractPersistable<UUID> {
     @JoinColumn(name = "shop_id")
     private Shop shop;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "company_id")
-    private Company company;
-
     public ShopInvoice() {
     }
 
-    public ShopInvoice(String code,
-                       Set<ShopInvoiceCommodity> commodities,
+    public ShopInvoice(Set<ShopInvoiceCommodity> commodities,
                        BigDecimal amount,
                        ShopAccount account,
                        Shop shop) {
-        this.code = code;
         this.commodities = commodities;
         this.amount = amount;
         this.account = account;
         this.shop = shop;
+    }
+
+    @PrePersist
+    public void init() {
+        this.code = RandomStringUtils
+                .randomAlphanumeric(CODE_LENGTH)
+                .toLowerCase();
     }
 }

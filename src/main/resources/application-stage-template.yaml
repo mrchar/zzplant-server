@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://<host>:<port>/<database>
+    username: <username>
+    password: <password>
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  liquibase:
+    enabled: true
+    change-log: "classpath:/db/changelog/db.changelog-master.xml"

@@ -3,6 +3,7 @@ package net.mrchar.zzplant.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.util.Set;
@@ -13,6 +14,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "`shop`")
 public class Shop extends AbstractPersistable<UUID> {
+    private static final Integer SHOP_CODE_LENGTH = 10;
+
     @Column(name = "code")
     private String code;
 
@@ -36,10 +39,14 @@ public class Shop extends AbstractPersistable<UUID> {
     public Shop() {
     }
 
-    public Shop(String code, String name, String address, User owner) {
-        this.code = code;
+    public Shop(String name, String address, User owner) {
         this.name = name;
         this.address = address;
         this.owner = owner;
+    }
+
+    @PrePersist
+    public void init() {
+        this.code = RandomStringUtils.randomAlphanumeric(SHOP_CODE_LENGTH).toLowerCase();
     }
 }

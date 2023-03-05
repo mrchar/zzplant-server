@@ -7,7 +7,6 @@ import net.mrchar.zzplant.exception.UnExpectedException;
 import net.mrchar.zzplant.model.*;
 import net.mrchar.zzplant.repository.*;
 import net.mrchar.zzplant.service.ShopService;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -25,10 +24,6 @@ import static net.mrchar.zzplant.model.ShopAccount.VIP;
 @Service
 @RequiredArgsConstructor
 public class ShopServiceImpl implements ShopService {
-    private static final Integer SHOP_CODE_LENGTH = 10;
-    private static final Integer COMMODITY_CODE_LENGTH = 10;
-    private static final Integer SHOP_ACCOUNT_CODE_LENGTH = 10;
-
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final ShopRepository shopRepository;
@@ -40,8 +35,8 @@ public class ShopServiceImpl implements ShopService {
     @Override
     @Transactional
     public Shop addShop(String name, String address, User owner) {
-        String code = RandomStringUtils.randomAlphanumeric(SHOP_CODE_LENGTH).toLowerCase();
-        Shop shop = new Shop(code, name, address, owner);
+
+        Shop shop = new Shop(name, address, owner);
         this.shopRepository.save(shop);
 
         ShopAssistant assistant = new ShopAssistant(String.format("%04d", 1),
@@ -87,8 +82,7 @@ public class ShopServiceImpl implements ShopService {
                     throw new ResourceAlreadyExistsException("商品名称不能重复");
                 });
 
-        String commodityCode = RandomStringUtils.randomAlphanumeric(COMMODITY_CODE_LENGTH);
-        ShopCommodity shopCommodity = new ShopCommodity(commodityCode, name, price, false, shop);
+        ShopCommodity shopCommodity = new ShopCommodity(name, price, false, shop);
         return this.commodityRepository.save(shopCommodity);
     }
 
@@ -104,8 +98,7 @@ public class ShopServiceImpl implements ShopService {
                 .orElseThrow(() -> new UnExpectedException("要操作的商铺不存在"));
 
 
-        String code = RandomStringUtils.randomAlphanumeric(SHOP_ACCOUNT_CODE_LENGTH).toLowerCase();
-        ShopAccount shopAccount = new ShopAccount(code, name, gender, VIP, phoneNumber, BigDecimal.ZERO, shop);
+        ShopAccount shopAccount = new ShopAccount(name, gender, VIP, phoneNumber, BigDecimal.ZERO, shop);
         this.shopAccountRepository.save(shopAccount);
 
         return shopAccount;
@@ -145,8 +138,7 @@ public class ShopServiceImpl implements ShopService {
                     return sum;
                 }, null);
 
-        String invoiceCode = RandomStringUtils.randomAlphanumeric(16);
-        ShopInvoice shopInvoice = new ShopInvoice(invoiceCode, shopInvoiceCommodities, amount, shopAccount, shop);
+        ShopInvoice shopInvoice = new ShopInvoice(shopInvoiceCommodities, amount, shopAccount, shop);
         return this.invoiceRepository.save(shopInvoice);
     }
 
