@@ -39,7 +39,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorize -> {
             authorize.requestMatchers("/api/register").permitAll();
-            authorize.anyRequest().permitAll();
+            authorize.anyRequest().authenticated();
         });
 
         http.formLogin().loginProcessingUrl("/api/login");
