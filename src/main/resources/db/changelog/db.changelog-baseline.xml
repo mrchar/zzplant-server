@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
+    <changeSet id="v0.1.0" author="mrchar">
+        <preConditions onFail="MARK_RAN">
+            <or>
+                <dbms type="h2"/>
+                <dbms type="mysql"/>
+                <dbms type="postgresql"/>
+            </or>
+            <not>
+                <tableExists tableName="account"/>
+                <tableExists tableName="user"/>
+                <tableExists tableName="company"/>
+                <tableExists tableName="shop"/>
+                <tableExists tableName="shop_assistant"/>
+                <tableExists tableName="shop_commodity"/>
+                <tableExists tableName="shop_account"/>
+                <tableExists tableName="shop_invoice"/>
+                <tableExists tableName="shop_invoice_commodity"/>
+            </not>
+        </preConditions>
+        <rollback>
+            <dropTable tableName="account"/>
+            <dropTable tableName="user"/>
+            <dropTable tableName="company"/>
+            <dropTable tableName="shop"/>
+            <dropTable tableName="shop_assistant"/>
+            <dropTable tableName="shop_commodity"/>
+            <dropTable tableName="shop_account"/>
+            <dropTable tableName="shop_invoice"/>
+            <dropTable tableName="shop_invoice_commodity"/>
+        </rollback>
+        <createTable tableName="account">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="varchar(8)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(50)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="password" type="varchar(200)"/>
+        </createTable>
+        <createTable tableName="user">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="gender" type="varchar(10)"/>
+            <column name="phone_number" type="varchar(50)"/>
+            <column name="account_id" type="uuid">
+                <constraints foreignKeyName="FK_USER_HAS_ONE_ACCOUNT"
+                             referencedTableName="account"
+                             referencedColumnNames="id"/>
+            </column>
+        </createTable>
+        <createTable tableName="company">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="varchar(10)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(200)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="owner_id" type="uuid">
+                <constraints foreignKeyName="FK_COMPANY_BELONGS_TO_USER"
+                             referencedTableName="user"
+                             referencedColumnNames="id"
+                             nullable="false"
+                />
+            </column>
+        </createTable>
+        <createTable tableName="shop">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="varchar(10)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="address" type="text"/>
+            <column name="owner_id" type="uuid">
+                <constraints foreignKeyName="FK_SHOP_BELONGS_TO_USER"
+                             referencedTableName="user"
+                             referencedColumnNames="id"
+                             nullable="false"
+                />
+            </column>
+            <column name="company_id" type="uuid">
+                <constraints foreignKeyName="FK_SHOP_BELONGS_TO_COMPANY"
+                             referencedTableName="company"
+                             referencedColumnNames="id"/>
+            </column>
+        </createTable>
+        <!--同一个所有者拥有的店铺不能重名-->
+        <addUniqueConstraint constraintName="UK_OWNER_HAS_UNIQUE_SHOP"
+                             tableName="shop"
+                             columnNames="owner_id,name"/>
+        <!--同一个公司拥有的店铺不能重名-->
+        <addUniqueConstraint constraintName="UK_COMPANY_HAS_UNIQUE_SHOP"
+                             tableName="shop"
+                             columnNames="company_id,name"/>
+        <createTable tableName="shop_assistant">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="varchar(10)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="varchar(100)"/>
+            <column name="user_id" type="uuid">
+                <constraints foreignKeyName="FK_SHOP_ASSISTANT_BELONGS_TO_USER"
+                             referencedTableName="user"
+                             referencedColumnNames="id"
+                />
+            </column>
+            <column name="shop_id" type="uuid">
+                <constraints foreignKeyName="FK_SHOP_ASSISTANT_BELONGS_TO_SHOP"
+                             referencedTableName="shop"
+                             referencedColumnNames="id"
+                             nullable="false"
+                />
+            </column>
+        </createTable>
+        <!--同一个用户在同一家店只能注册一次店员-->
+        <addUniqueConstraint constraintName="UK_SHOP_HAS_UNIQUE_ASSISTANT_FOR_CERTAIN_USER"
+                             tableName="shop_assistant"
+                             columnNames="shop_id,user_id"
+        />
+        <createTable tableName="shop_commodity">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="varchar(8)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="price" type="decimal(,3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="off_shelf" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="shop_id" type="uuid">
+                <constraints foreignKeyName="FK_SHOP_COMMODITY_BELONGS_TO_SHOP"
+                             referencedTableName="shop"
+                             referencedColumnNames="id"
+                />
+            </column>
+        </createTable>
+        <!--同一个商铺中的商品编码不能重复-->
+        <addUniqueConstraint
+                constraintName="UK_SHOP_HAS_UNIQUE_COMMODITY_CODE"
+                tableName="shop_commodity"
+                columnNames="shop_id,code"
+        />
+        <!--同一个商铺中的商品名称不能重复-->
+        <addUniqueConstraint
+                constraintName="UK_SHOP_HAS_UNIQUE_COMMODITY_NAME"
+                tableName="shop_commodity"
+                columnNames="shop_id,name"
+        />
+        <createTable tableName="shop_account">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="varchar(10)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="gender" type="varchar(10)"/>
+            <column name="title" type="varchar(50)"/>
+            <column name="phone_number" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="balance" type="decimal(,3)" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password" type="varchar(100)"/>
+            <column name="user_id" type="uuid"/>
+            <column name="shop_id" type="uuid">
+                <constraints foreignKeyName="FK_SHOP_ACCOUNT_BELONGS_TO_SHOP"
+                             referencedTableName="shop"
+                             referencedColumnNames="id"
+                             nullable="false"
+                />
+            </column>
+        </createTable>
+        <addUniqueConstraint constraintName="UK_SHOP_HAS_UNIQUE_PHONE_NUMBER_FOR_ACCOUNT"
+                             tableName="shop_account"
+                             columnNames="shop_id,phone_number"/>
+        <addUniqueConstraint constraintName="UK_SHOP_HAS_UNIQUE_ACCOUNT_FOR_CERTAIN_USER"
+                             tableName="shop_account"
+                             columnNames="shop_id,user_id"/>
+        <createTable tableName="shop_invoice">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="varchar(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="decimal(,3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="account_id" type="uuid">
+                <constraints foreignKeyName="FK_INVOICE_BELONGS_TO_SHOP_ACCOUNT"
+                             referencedTableName="shop_account"
+                             referencedColumnNames="id"
+                             nullable="false"
+                />
+            </column>
+            <column name="shop_id" type="uuid">
+                <constraints foreignKeyName="FK_INVOICE_BELONGS_TO_SHOP"
+                             referencedTableName="shop"
+                             referencedColumnNames="id"
+                             nullable="false"
+                />
+            </column>
+        </createTable>
+        <addUniqueConstraint constraintName="UK_SHOP_HAS_UNIQUE_INVOICE_CODE"
+                             tableName="shop_invoice"
+                             columnNames="shop_id,code"
+        />
+        <createTable tableName="shop_invoice_commodity">
+            <column name="invoice_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="code" type="varchar(8)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="price" type="decimal(,3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="quantity" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="decimal(,3)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
