@@ -64,9 +64,11 @@ public class ShopController {
     }
 
     @GetMapping("/shops")
+    @Transactional
     public Page<ShopSchema> listShops(Pageable pageable) {
         User user = this.getCurrentOperator();
-        return this.shopRepository.findAllByOwner(user, pageable);
+        Page<Shop> entities = this.shopRepository.findAllByOwner(user, pageable);
+        return entities.map(ShopSchema::fromEntity);
     }
 
     @Data

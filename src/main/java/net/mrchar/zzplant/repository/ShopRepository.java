@@ -1,6 +1,5 @@
 package net.mrchar.zzplant.repository;
 
-import net.mrchar.zzplant.controller.ShopController;
 import net.mrchar.zzplant.model.Shop;
 import net.mrchar.zzplant.model.User;
 import org.springframework.data.domain.Page;
@@ -41,7 +40,7 @@ public interface ShopRepository extends JpaRepository<Shop, UUID> {
      * @return 拥有的商铺列表
      */
     @Query("select shop from Shop shop where shop.owner.id = :#{#user.id}")
-    Page<ShopController.ShopSchema> findAllByOwner(User user, Pageable pageable);
+    Page<Shop> findAllByOwner(User user, Pageable pageable);
 
     /**
      * 查找用户所属的商铺是否存在
