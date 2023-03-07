@@ -10,7 +10,6 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -49,9 +48,10 @@ public class SecurityConfiguration {
         });
 
         http.cors(withDefaults());
-        http.csrf()
-                .csrfTokenRepository(new CookieCsrfTokenRepository())
-                .ignoringRequestMatchers("/api/login");
+        http.csrf().disable();
+//        http.csrf()
+//                .csrfTokenRepository(new CookieCsrfTokenRepository())
+//                .ignoringRequestMatchers("/api/login");
 
         http.exceptionHandling()
                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
