@@ -4,13 +4,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @Import(CorsProperties.class)
@@ -39,13 +43,24 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorize -> {
             authorize.requestMatchers("/api/register").permitAll();
+            authorize.requestMatchers("/api/login").permitAll();
             authorize.anyRequest().authenticated();
         });
 
-        http.formLogin().loginProcessingUrl("/api/login");
+        http.cors(withDefaults());
+        http.csrf().ignoringRequestMatchers("/api/login");
+
+        http.exceptionHandling()
+                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
+
+        http.formLogin()
+                .usernameParameter("phoneNumber")
+                .passwordParameter("password")
+                .loginProcessingUrl("/api/login")
+                .successForwardUrl("/api/login/success")
+                .failureForwardUrl("/api/login/failure");
+
         http.logout().logoutUrl("/api/logout");
-        http.cors();
-        http.csrf().disable();
         return http.build();
     }
 }
