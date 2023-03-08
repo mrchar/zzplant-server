@@ -192,10 +192,14 @@ public class ShopController {
         }
 
         public static ShopAccountSchema fromEntity(ShopAccount entity) {
+            String gender = "UNKNOWN";
+            if (entity.getGender() != null) {
+                gender = entity.getGender().toString();
+            }
             ShopAccountSchema schema = new ShopAccountSchema(
                     entity.getCode(),
                     entity.getName(),
-                    entity.getGender().toString(),
+                    gender,
                     entity.getPhoneNumber(),
                     entity.getBalance()
             );
