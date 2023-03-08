@@ -49,9 +49,6 @@ public class SecurityConfiguration {
 
         http.cors(withDefaults());
         http.csrf().disable();
-//        http.csrf()
-//                .csrfTokenRepository(new CookieCsrfTokenRepository())
-//                .ignoringRequestMatchers("/api/login");
 
         http.exceptionHandling()
                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
