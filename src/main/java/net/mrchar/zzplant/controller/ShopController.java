@@ -218,6 +218,7 @@ public class ShopController {
         private String name;
         private String gender;
         private String phoneNumber;
+        private BigDecimal balance;
     }
 
     @PostMapping("/shops/{shopCode}/accounts")
@@ -233,7 +234,8 @@ public class ShopController {
         ShopAccount entity = shopService.addShopAccount(
                 shopCode, request.getName(),
                 Gender.fromString(request.getGender()),
-                request.getPhoneNumber());
+                request.getPhoneNumber(),
+                request.getBalance());
         // 添加会员
         return ShopAccountSchema.fromEntity(entity);
     }

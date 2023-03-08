@@ -56,7 +56,7 @@
             <column name="gender" type="varchar(10)"/>
             <column name="phone_number" type="varchar(50)"/>
             <column name="account_id" type="uuid">
-                <constraints foreignKeyName="FK_USER_HAS_ONE_ACCOUNT"
+                <constraints foreignKeyName="fk_user_has_one_account"
                              referencedTableName="account"
                              referencedColumnNames="id"/>
             </column>
@@ -72,7 +72,7 @@
                 <constraints unique="true" nullable="false"/>
             </column>
             <column name="owner_id" type="uuid">
-                <constraints foreignKeyName="FK_COMPANY_BELONGS_TO_USER"
+                <constraints foreignKeyName="fk_company_belongs_to_user"
                              referencedTableName="user"
                              referencedColumnNames="id"
                              nullable="false"
@@ -91,24 +91,24 @@
             </column>
             <column name="address" type="text"/>
             <column name="owner_id" type="uuid">
-                <constraints foreignKeyName="FK_SHOP_BELONGS_TO_USER"
+                <constraints foreignKeyName="fk_shop_belongs_to_user"
                              referencedTableName="user"
                              referencedColumnNames="id"
                              nullable="false"
                 />
             </column>
             <column name="company_id" type="uuid">
-                <constraints foreignKeyName="FK_SHOP_BELONGS_TO_COMPANY"
+                <constraints foreignKeyName="fk_shop_belongs_to_company"
                              referencedTableName="company"
                              referencedColumnNames="id"/>
             </column>
         </createTable>
         <!--同一个所有者拥有的店铺不能重名-->
-        <addUniqueConstraint constraintName="UK_OWNER_HAS_UNIQUE_SHOP"
+        <addUniqueConstraint constraintName="uk_owner_has_unique_shop"
                              tableName="shop"
                              columnNames="owner_id,name"/>
         <!--同一个公司拥有的店铺不能重名-->
-        <addUniqueConstraint constraintName="UK_COMPANY_HAS_UNIQUE_SHOP"
+        <addUniqueConstraint constraintName="uk_company_has_unique_shop"
                              tableName="shop"
                              columnNames="company_id,name"/>
         <createTable tableName="shop_assistant">
@@ -116,20 +116,20 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="code" type="varchar(10)">
-                <constraints unique="true" nullable="false"/>
+                <constraints nullable="false"/>
             </column>
             <column name="name" type="varchar(50)">
                 <constraints nullable="false"/>
             </column>
             <column name="title" type="varchar(100)"/>
             <column name="user_id" type="uuid">
-                <constraints foreignKeyName="FK_SHOP_ASSISTANT_BELONGS_TO_USER"
+                <constraints foreignKeyName="fk_shop_assistant_belongs_to_user"
                              referencedTableName="user"
                              referencedColumnNames="id"
                 />
             </column>
             <column name="shop_id" type="uuid">
-                <constraints foreignKeyName="FK_SHOP_ASSISTANT_BELONGS_TO_SHOP"
+                <constraints foreignKeyName="fk_shop_assistant_belongs_to_shop"
                              referencedTableName="shop"
                              referencedColumnNames="id"
                              nullable="false"
@@ -137,7 +137,7 @@
             </column>
         </createTable>
         <!--同一个用户在同一家店只能注册一次店员-->
-        <addUniqueConstraint constraintName="UK_SHOP_HAS_UNIQUE_ASSISTANT_FOR_CERTAIN_USER"
+        <addUniqueConstraint constraintName="uk_shop_has_unique_assistant_for_certain_user"
                              tableName="shop_assistant"
                              columnNames="shop_id,user_id"
         />
@@ -158,7 +158,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="shop_id" type="uuid">
-                <constraints foreignKeyName="FK_SHOP_COMMODITY_BELONGS_TO_SHOP"
+                <constraints foreignKeyName="fk_shop_commodity_belongs_to_shop"
                              referencedTableName="shop"
                              referencedColumnNames="id"
                 />
@@ -166,13 +166,13 @@
         </createTable>
         <!--同一个商铺中的商品编码不能重复-->
         <addUniqueConstraint
-                constraintName="UK_SHOP_HAS_UNIQUE_COMMODITY_CODE"
+                constraintName="uk_shop_has_unique_commodity_code"
                 tableName="shop_commodity"
                 columnNames="shop_id,code"
         />
         <!--同一个商铺中的商品名称不能重复-->
         <addUniqueConstraint
-                constraintName="UK_SHOP_HAS_UNIQUE_COMMODITY_NAME"
+                constraintName="uk_shop_has_unique_commodity_name"
                 tableName="shop_commodity"
                 columnNames="shop_id,name"
         />
@@ -197,17 +197,17 @@
             <column name="password" type="varchar(100)"/>
             <column name="user_id" type="uuid"/>
             <column name="shop_id" type="uuid">
-                <constraints foreignKeyName="FK_SHOP_ACCOUNT_BELONGS_TO_SHOP"
+                <constraints foreignKeyName="fk_shop_account_belongs_to_shop"
                              referencedTableName="shop"
                              referencedColumnNames="id"
                              nullable="false"
                 />
             </column>
         </createTable>
-        <addUniqueConstraint constraintName="UK_SHOP_HAS_UNIQUE_PHONE_NUMBER_FOR_ACCOUNT"
+        <addUniqueConstraint constraintName="uk_shop_has_unique_phone_number_for_account"
                              tableName="shop_account"
                              columnNames="shop_id,phone_number"/>
-        <addUniqueConstraint constraintName="UK_SHOP_HAS_UNIQUE_ACCOUNT_FOR_CERTAIN_USER"
+        <addUniqueConstraint constraintName="uk_shop_has_unique_account_for_certain_user"
                              tableName="shop_account"
                              columnNames="shop_id,user_id"/>
         <createTable tableName="shop_invoice">
@@ -221,21 +221,21 @@
                 <constraints nullable="false"/>
             </column>
             <column name="account_id" type="uuid">
-                <constraints foreignKeyName="FK_INVOICE_BELONGS_TO_SHOP_ACCOUNT"
+                <constraints foreignKeyName="fk_invoice_belongs_to_shop_account"
                              referencedTableName="shop_account"
                              referencedColumnNames="id"
                              nullable="false"
                 />
             </column>
             <column name="shop_id" type="uuid">
-                <constraints foreignKeyName="FK_INVOICE_BELONGS_TO_SHOP"
+                <constraints foreignKeyName="fk_invoice_belongs_to_shop"
                              referencedTableName="shop"
                              referencedColumnNames="id"
                              nullable="false"
                 />
             </column>
         </createTable>
-        <addUniqueConstraint constraintName="UK_SHOP_HAS_UNIQUE_INVOICE_CODE"
+        <addUniqueConstraint constraintName="uk_shop_has_unique_invoice_code"
                              tableName="shop_invoice"
                              columnNames="shop_id,code"
         />

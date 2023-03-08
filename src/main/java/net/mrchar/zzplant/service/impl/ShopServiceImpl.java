@@ -88,7 +88,7 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     @Transactional
-    public ShopAccount addShopAccount(String shopCode, String name, Gender gender, String phoneNumber) {
+    public ShopAccount addShopAccount(String shopCode, String name, Gender gender, String phoneNumber, BigDecimal balance) {
         boolean exists = this.shopAccountRepository.existsByShopCodeAndPhoneNumber(shopCode, phoneNumber);
         if (exists) {
             throw new ResourceAlreadyExistsException("该手机号码已经绑定了该店铺的会员");
@@ -96,9 +96,8 @@ public class ShopServiceImpl implements ShopService {
 
         Shop shop = this.shopRepository.findOneByCode(shopCode)
                 .orElseThrow(() -> new UnExpectedException("要操作的商铺不存在"));
-
-
-        ShopAccount shopAccount = new ShopAccount(name, gender, VIP, phoneNumber, BigDecimal.ZERO, shop);
+        
+        ShopAccount shopAccount = new ShopAccount(name, gender, VIP, phoneNumber, balance, shop);
         this.shopAccountRepository.save(shopAccount);
 
         return shopAccount;
