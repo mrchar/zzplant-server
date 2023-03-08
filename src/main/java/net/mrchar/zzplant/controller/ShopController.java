@@ -178,13 +178,15 @@ public class ShopController {
     public static class ShopAccountSchema {
         private String code;
         private String name;
+        private String gender;
         private String phoneNumber;
         private BigDecimal balance;
         private String shop;
 
-        public ShopAccountSchema(String code, String name, String phoneNumber, BigDecimal balance) {
+        public ShopAccountSchema(String code, String name, String gender, String phoneNumber, BigDecimal balance) {
             this.code = code;
             this.name = name;
+            this.gender = gender;
             this.phoneNumber = phoneNumber;
             this.balance = balance;
         }
@@ -193,6 +195,7 @@ public class ShopController {
             ShopAccountSchema schema = new ShopAccountSchema(
                     entity.getCode(),
                     entity.getName(),
+                    entity.getGender().toString(),
                     entity.getPhoneNumber(),
                     entity.getBalance()
             );
@@ -211,6 +214,14 @@ public class ShopController {
     public Page<ShopAccountSchema> listShopAccounts(@PathVariable String shopCode, Pageable pageable) {
         Page<ShopAccount> entities = this.shopAccountRepository.findAllByShopCode(shopCode, pageable);
         return entities.map(ShopAccountSchema::fromEntity);
+    }
+
+    @GetMapping("/shops/{shopCode}/accounts/{accountCode}")
+    @Transactional
+    public ShopAccountSchema getShopAccount(@PathVariable String shopCode, @PathVariable String accountCode) {
+        ShopAccount entity = this.shopRepository.findOneByShopCodeAndCode(shopCode, accountCode)
+                .orElseThrow(() -> new ResourceNotExistsException("会员不存在"));
+        return ShopAccountSchema.fromEntity(entity);
     }
 
     @Data
