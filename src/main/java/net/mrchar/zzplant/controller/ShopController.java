@@ -178,21 +178,28 @@ public class ShopController {
     public static class ShopAccountSchema {
         private String code;
         private String name;
+        private String gender;
         private String phoneNumber;
         private BigDecimal balance;
         private String shop;
 
-        public ShopAccountSchema(String code, String name, String phoneNumber, BigDecimal balance) {
+        public ShopAccountSchema(String code, String name, String gender, String phoneNumber, BigDecimal balance) {
             this.code = code;
             this.name = name;
+            this.gender = gender;
             this.phoneNumber = phoneNumber;
             this.balance = balance;
         }
 
         public static ShopAccountSchema fromEntity(ShopAccount entity) {
+            String gender = "UNKNOWN";
+            if (entity.getGender() != null) {
+                gender = entity.getGender().toString();
+            }
             ShopAccountSchema schema = new ShopAccountSchema(
                     entity.getCode(),
                     entity.getName(),
+                    gender,
                     entity.getPhoneNumber(),
                     entity.getBalance()
             );
@@ -213,11 +220,20 @@ public class ShopController {
         return entities.map(ShopAccountSchema::fromEntity);
     }
 
+    @GetMapping("/shops/{shopCode}/accounts/{accountCode}")
+    @Transactional
+    public ShopAccountSchema getShopAccount(@PathVariable String shopCode, @PathVariable String accountCode) {
+        ShopAccount entity = this.shopRepository.findOneByShopCodeAndCode(shopCode, accountCode)
+                .orElseThrow(() -> new ResourceNotExistsException("会员不存在"));
+        return ShopAccountSchema.fromEntity(entity);
+    }
+
     @Data
     public static class AddShopAccountRequest {
         private String name;
         private String gender;
         private String phoneNumber;
+        private BigDecimal balance;
     }
 
     @PostMapping("/shops/{shopCode}/accounts")
@@ -233,7 +249,8 @@ public class ShopController {
         ShopAccount entity = shopService.addShopAccount(
                 shopCode, request.getName(),
                 Gender.fromString(request.getGender()),
-                request.getPhoneNumber());
+                request.getPhoneNumber(),
+                request.getBalance());
         // 添加会员
         return ShopAccountSchema.fromEntity(entity);
     }

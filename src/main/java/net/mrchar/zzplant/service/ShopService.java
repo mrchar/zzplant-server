@@ -45,7 +45,7 @@ public interface ShopService {
      * @param phoneNumber 手机号码
      * @return 会员信息
      */
-    ShopAccount addShopAccount(String shopCode, String name, Gender gender, String phoneNumber);
+    ShopAccount addShopAccount(String shopCode, String name, Gender gender, String phoneNumber, BigDecimal balance);
 
     /**
      * 创建账单

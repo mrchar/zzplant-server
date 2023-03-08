@@ -1,6 +1,7 @@
 package net.mrchar.zzplant.repository;
 
 import net.mrchar.zzplant.model.Shop;
+import net.mrchar.zzplant.model.ShopAccount;
 import net.mrchar.zzplant.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -51,4 +52,14 @@ public interface ShopRepository extends JpaRepository<Shop, UUID> {
      */
     @Query("select (count(1) > 0) from Shop shop where shop.code = :shopCode and shop.owner.id = :#{#owner.id}")
     boolean existsByShopCodeAndOwner(String shopCode, User owner);
+
+    /**
+     * 查找店铺中的会员
+     *
+     * @param shopCode 商铺编号
+     * @param code     会员编号
+     * @return 会员信息
+     */
+    @Query("select account from ShopAccount account where account.shop.code = :shopCode and account.code = :code")
+    Optional<ShopAccount> findOneByShopCodeAndCode(String shopCode, String code);
 }
