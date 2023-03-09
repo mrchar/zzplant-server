@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -215,8 +216,15 @@ public class ShopController {
 
     @GetMapping("/shops/{shopCode}/accounts")
     @Transactional
-    public Page<ShopAccountSchema> listShopAccounts(@PathVariable String shopCode, Pageable pageable) {
-        Page<ShopAccount> entities = this.shopAccountRepository.findAllByShopCode(shopCode, pageable);
+    public Page<ShopAccountSchema> listShopAccounts(@PathVariable String shopCode,
+                                                    @RequestParam(required = false) String keyword,
+                                                    Pageable pageable) {
+        Page<ShopAccount> entities = null;
+        if (StringUtils.hasText(keyword)) {
+            entities = this.shopAccountRepository.searchShopAccountOfShop(shopCode, keyword, pageable);
+        } else {
+            entities = this.shopAccountRepository.findAllByShopCode(shopCode, pageable);
+        }
         return entities.map(ShopAccountSchema::fromEntity);
     }
 
