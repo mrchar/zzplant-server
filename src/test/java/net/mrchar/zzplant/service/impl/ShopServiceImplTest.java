@@ -83,7 +83,7 @@ class ShopServiceImplTest {
     }
 
     @Test
-    void addInvoice() {
+    void addBills() {
         Shop shop = this.mockShopServiceTool.addShop();
 
         String shopAccountName = RandomStringUtils.randomAlphanumeric(1, 10);
@@ -93,7 +93,7 @@ class ShopServiceImplTest {
 
         // TODO: 添加商品
 
-        ShopInvoice shopInvoice = this.shopService.addInvoice(shop.getCode(), shopAccount.getCode(), Map.of());
+        ShopBill shopBill = this.shopService.addBill(shop.getCode(), shopAccount.getCode(), Map.of());
 
         // 添加断言
     }

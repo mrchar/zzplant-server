@@ -30,7 +30,7 @@ public class ShopServiceImpl implements ShopService {
     private final ShopAssistantRepository assistantRepository;
     private final ShopCommodityRepository commodityRepository;
     private final ShopAccountRepository shopAccountRepository;
-    private final ShopInvoiceRepository invoiceRepository;
+    private final ShopBillRespository shopBillRespository;
 
     @Override
     @Transactional
@@ -96,7 +96,7 @@ public class ShopServiceImpl implements ShopService {
 
         Shop shop = this.shopRepository.findOneByCode(shopCode)
                 .orElseThrow(() -> new UnExpectedException("要操作的商铺不存在"));
-        
+
         ShopAccount shopAccount = new ShopAccount(name, gender, VIP, phoneNumber, balance, shop);
         this.shopAccountRepository.save(shopAccount);
 
@@ -105,7 +105,7 @@ public class ShopServiceImpl implements ShopService {
 
 
     @Override
-    public ShopInvoice addInvoice(String shopCode, String accountCode, Map<String, Integer> commodities) {
+    public ShopBill addBill(String shopCode, String accountCode, Map<String, Integer> commodities) {
         Shop shop = this.shopRepository.findOneByCode(shopCode)
                 .orElseThrow(() -> new ResourceNotExistsException("店铺不存在"));
 
@@ -114,13 +114,13 @@ public class ShopServiceImpl implements ShopService {
 
         List<ShopCommodity> commodityEntities = this.commodityRepository
                 .findAllByShopCodeAndCodeIn(shopCode, commodities.keySet());
-        Set<ShopInvoiceCommodity> shopInvoiceCommodities = commodityEntities.stream()
+        Set<ShopBillCommodity> shopBillCommodities = commodityEntities.stream()
                 .map(entity -> {
                     // 获取商品数量
                     Integer quantity = commodities.get(entity.getCode());
                     // 获取当前商品总价
                     BigDecimal amount = entity.getPrice().multiply(BigDecimal.valueOf(quantity));
-                    return ShopInvoiceCommodity
+                    return ShopBillCommodity
                             .builder()
                             .withCode(entity.getCode())
                             .withName(entity.getName())
@@ -137,8 +137,8 @@ public class ShopServiceImpl implements ShopService {
                     return sum;
                 }, null);
 
-        ShopInvoice shopInvoice = new ShopInvoice(shopInvoiceCommodities, amount, shopAccount, shop);
-        return this.invoiceRepository.save(shopInvoice);
+        ShopBill shopBill = new ShopBill(shopBillCommodities, amount, shopAccount, shop);
+        return this.shopBillRespository.save(shopBill);
     }
 
     @Override

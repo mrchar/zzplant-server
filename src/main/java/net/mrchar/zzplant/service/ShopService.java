@@ -55,7 +55,7 @@ public interface ShopService {
      * @param commodityCodes 商品编号列表
      * @return 账单信息
      */
-    ShopInvoice addInvoice(String shopCode, String accountCode, Map<String, Integer> commodityCodes);
+    ShopBill addBill(String shopCode, String accountCode, Map<String, Integer> commodityCodes);
 
     /**
      * 判断当前操作的用户是否是指定店铺的店员

@@ -3,9 +3,9 @@ package net.mrchar.zzplant.controller;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import net.mrchar.zzplant.exception.ForbiddenOperationException;
-import net.mrchar.zzplant.model.ShopInvoice;
-import net.mrchar.zzplant.model.ShopInvoiceCommodity;
-import net.mrchar.zzplant.repository.ShopInvoiceRepository;
+import net.mrchar.zzplant.model.ShopBill;
+import net.mrchar.zzplant.model.ShopBillCommodity;
+import net.mrchar.zzplant.repository.ShopBillRespository;
 import net.mrchar.zzplant.service.ShopService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-public class InvoiceController {
-    private final ShopInvoiceRepository invoiceRepository;
+public class ShopBillController {
+    private final ShopBillRespository shopBillRespository;
     private final ShopService shopService;
 
     @Data
@@ -42,7 +42,7 @@ public class InvoiceController {
             this.amount = amount;
         }
 
-        public static CommoditySchema fromEntity(ShopInvoiceCommodity entity) {
+        public static CommoditySchema fromEntity(ShopBillCommodity entity) {
             return new CommoditySchema(
                     entity.getCode(),
                     entity.getName(),
@@ -54,14 +54,14 @@ public class InvoiceController {
     }
 
     @Data
-    public static class InvoiceSchema {
+    public static class ShopBillSchema {
         private String code;
         private List<CommoditySchema> commodities;
         private BigDecimal amount;
         private String shopAccount;
         private String shop;
 
-        public InvoiceSchema(String code, List<CommoditySchema> commodities, BigDecimal amount, String shopAccount, String shop) {
+        public ShopBillSchema(String code, List<CommoditySchema> commodities, BigDecimal amount, String shopAccount, String shop) {
             this.code = code;
             this.commodities = commodities;
             this.amount = amount;
@@ -69,90 +69,90 @@ public class InvoiceController {
             this.shop = shop;
         }
 
-        public static InvoiceSchema fromEntity(ShopInvoice entity) {
+        public static ShopBillSchema fromEntity(ShopBill entity) {
             List<CommoditySchema> commoditySchemas = entity.getCommodities().stream().map(CommoditySchema::fromEntity).collect(Collectors.toList());
-            return new InvoiceSchema(
+            return new ShopBillSchema(
                     entity.getCode(),
                     commoditySchemas,
                     entity.getAmount(),
-                    entity.getAccount().getCode(),
+                    entity.getShopAccount().getCode(),
                     entity.getShop().getCode());
         }
     }
 
-    @GetMapping("/shops/{shopCode}/invoices")
+    @GetMapping("/shops/{shopCode}/bill")
     @Transactional
-    public Page<InvoiceSchema> listInvoice(@PathVariable String shopCode,
-                                           @RequestParam(required = false) String keyword,
-                                           Pageable pageable) {
+    public Page<ShopBillSchema> listBills(@PathVariable String shopCode,
+                                          @RequestParam(required = false) String keyword,
+                                          Pageable pageable) {
         boolean exists = this.shopService.operatorIsAssistant(shopCode);
         if (!exists) {
             throw new ForbiddenOperationException("您没有权限执行这个操作");
         }
 
         if (StringUtils.hasText(keyword)) {
-            Page<ShopInvoice> entities = this.invoiceRepository.searchInvoiceByShopCodeAndKeyword(shopCode, keyword, pageable);
-            return entities.map(InvoiceSchema::fromEntity);
+            Page<ShopBill> entities = this.shopBillRespository.searchBillByShopCodeAndKeyword(shopCode, keyword, pageable);
+            return entities.map(ShopBillSchema::fromEntity);
         }
 
-        Page<ShopInvoice> entities = this.invoiceRepository.findAllByShopCode(shopCode, pageable);
-        return entities.map(InvoiceSchema::fromEntity);
+        Page<ShopBill> entities = this.shopBillRespository.findAllByShopCode(shopCode, pageable);
+        return entities.map(ShopBillSchema::fromEntity);
     }
 
-    @GetMapping("/shops/{shopCode}/accounts/{accountCode}/invoices")
+    @GetMapping("/shops/{shopCode}/accounts/{accountCode}/bills")
     @Transactional
-    public Page<InvoiceSchema> listInvoicesOfAccount(@PathVariable String shopCode,
-                                                     @PathVariable String accountCode,
-                                                     Pageable pageable) {
-        Page<ShopInvoice> entities = this.invoiceRepository.findAllByShopCodeAndAccountCode(shopCode, accountCode, pageable);
-        return entities.map(InvoiceSchema::fromEntity);
+    public Page<ShopBillSchema> listBillsOfAccount(@PathVariable String shopCode,
+                                                   @PathVariable String accountCode,
+                                                   Pageable pageable) {
+        Page<ShopBill> entities = this.shopBillRespository.findAllByShopCodeAndAccountCode(shopCode, accountCode, pageable);
+        return entities.map(ShopBillSchema::fromEntity);
     }
 
 
     @Data
-    public static class AddInvoiceRequest {
+    public static class AddBillRequest {
         private String accountCode;
         private Map<String, Integer> commodities;
     }
 
-    @PostMapping("/shops/{shopCode}/invoices")
-    public InvoiceSchema addInvoice(@PathVariable String shopCode, @RequestBody AddInvoiceRequest request) {
+    @PostMapping("/shops/{shopCode}/bills")
+    public ShopBillSchema addBills(@PathVariable String shopCode, @RequestBody AddBillRequest request) {
         boolean exists = this.shopService.operatorIsAssistant(shopCode);
         if (!exists) {
             throw new ForbiddenOperationException("您没有权限执行这个操作");
         }
 
-        ShopInvoice shopInvoice = this.shopService
-                .addInvoice(shopCode, request.getAccountCode(), request.getCommodities());
+        ShopBill shopBill = this.shopService
+                .addBill(shopCode, request.getAccountCode(), request.getCommodities());
 
         // 创建订单
-        return InvoiceSchema.fromEntity(shopInvoice);
+        return ShopBillSchema.fromEntity(shopBill);
     }
 
-    @PutMapping("/shops/{shopCode}/invoices/{invoiceCode}/commodities")
-    public List<CommoditySchema> updateInvoice(@PathVariable String shopCode,
-                                               @PathVariable String invoiceCode,
-                                               @RequestBody List<CommoditySchema> request) {
+    @PutMapping("/shops/{shopCode}/bills/{billCode}/commodities")
+    public List<CommoditySchema> updateBill(@PathVariable String shopCode,
+                                            @PathVariable String billCode,
+                                            @RequestBody List<CommoditySchema> request) {
         // 修改订单
         return Collections.emptyList();
     }
 
-    @DeleteMapping("/shops/{shopCode}/invoices/{invoiceCode}")
-    public void deleteInvoice(@PathVariable String shopCode, @PathVariable String invoiceCode) {
+    @DeleteMapping("/shops/{shopCode}/bills/{billCode}")
+    public void deleteBill(@PathVariable String shopCode, @PathVariable String billCode) {
         // 删除订单
     }
 
     @Data
-    public static class ConfirmInvoiceRequest {
-        private String invoiceCode;
+    public static class ConfirmBillRequest {
+        private String billCode;
         private List<CommoditySchema> commodities;
         private BigDecimal amount;
     }
 
     // 确认订单
     @PostMapping("/shops/{shopCode}/payment")
-    public InvoiceSchema confirmInvoice(@PathVariable String shopCode,
-                                        @RequestBody ConfirmInvoiceRequest request) {
+    public ShopBillSchema confirmBill(@PathVariable String shopCode,
+                                      @RequestBody ConfirmBillRequest request) {
         // 确认支付
         return null;
     }
