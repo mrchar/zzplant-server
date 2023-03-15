@@ -22,6 +22,18 @@ public interface ShopAccountRepository extends JpaRepository<ShopAccount, UUID> 
     Page<ShopAccount> findAllByShopCode(String shopCode, Pageable pageable);
 
     /**
+     * 使用关键词搜索商铺中的会员
+     *
+     * @param shopCode
+     * @param keyword
+     * @param pageable
+     * @return
+     */
+    @Query("select account from ShopAccount account where account.shop.code = :shopCode " +
+            "and (account.name like :#{'%'+#keyword+'%'} or account.phoneNumber like :#{'%'+#keyword+'%'})")
+    Page<ShopAccount> searchShopAccountOfShop(String shopCode, String keyword, Pageable pageable);
+
+    /**
      * 根据手机号查找指定商铺中的会员
      *
      * @param shopCode    商铺编号
