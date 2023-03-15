@@ -112,7 +112,7 @@ public class ShopServiceImpl implements ShopService {
         ShopAccount shopAccount = this.shopAccountRepository.findOneByShopCodeAndCode(shopCode, accountCode)
                 .orElseThrow(() -> new ResourceNotExistsException("会员不存在"));
 
-        List<ShopCommodity> commodityEntities = this.invoiceRepository
+        List<ShopCommodity> commodityEntities = this.commodityRepository
                 .findAllByShopCodeAndCodeIn(shopCode, commodities.keySet());
         Set<ShopInvoiceCommodity> shopInvoiceCommodities = commodityEntities.stream()
                 .map(entity -> {

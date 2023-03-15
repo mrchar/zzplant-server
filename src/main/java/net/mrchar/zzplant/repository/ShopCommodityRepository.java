@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,4 +38,14 @@ public interface ShopCommodityRepository extends JpaRepository<ShopCommodity, UU
     @Query("select commodity from ShopCommodity commodity " +
             "where commodity.shop.id = :#{#shop.id} and commodity.name = :commodityName")
     Optional<ShopCommodity> findOneByShopAndName(Shop shop, String commodityName);
+
+    /**
+     * 查找商铺的商品列表
+     *
+     * @param shopCode
+     * @param commodityCodes
+     * @return
+     */
+    @Query("select commodity from ShopCommodity commodity where commodity.shop.code = :shopCode and commodity.code in :commodityCodes")
+    List<ShopCommodity> findAllByShopCodeAndCodeIn(String shopCode, Collection<String> commodityCodes);
 }

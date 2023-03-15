@@ -6,12 +6,11 @@ import net.mrchar.zzplant.exception.ForbiddenOperationException;
 import net.mrchar.zzplant.model.ShopInvoice;
 import net.mrchar.zzplant.model.ShopInvoiceCommodity;
 import net.mrchar.zzplant.repository.ShopInvoiceRepository;
-import net.mrchar.zzplant.repository.ShopRepository;
-import net.mrchar.zzplant.repository.UserRepository;
 import net.mrchar.zzplant.service.ShopService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -24,8 +23,6 @@ import java.util.stream.Collectors;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class InvoiceController {
-    private final UserRepository userRepository;
-    private final ShopRepository shopRepository;
     private final ShopInvoiceRepository invoiceRepository;
     private final ShopService shopService;
 
@@ -85,13 +82,29 @@ public class InvoiceController {
 
     @GetMapping("/shops/{shopCode}/invoices")
     @Transactional
-    public Page<InvoiceSchema> listInvoice(@PathVariable String shopCode, Pageable pageable) {
+    public Page<InvoiceSchema> listInvoice(@PathVariable String shopCode,
+                                           @RequestParam(required = false) String keyword,
+                                           Pageable pageable) {
         boolean exists = this.shopService.operatorIsAssistant(shopCode);
         if (!exists) {
             throw new ForbiddenOperationException("您没有权限执行这个操作");
         }
 
+        if (StringUtils.hasText(keyword)) {
+            Page<ShopInvoice> entities = this.invoiceRepository.searchInvoiceByShopCodeAndKeyword(shopCode, keyword, pageable);
+            return entities.map(InvoiceSchema::fromEntity);
+        }
+
         Page<ShopInvoice> entities = this.invoiceRepository.findAllByShopCode(shopCode, pageable);
+        return entities.map(InvoiceSchema::fromEntity);
+    }
+
+    @GetMapping("/shops/{shopCode}/accounts/{accountCode}/invoices")
+    @Transactional
+    public Page<InvoiceSchema> listInvoicesOfAccount(@PathVariable String shopCode,
+                                                     @PathVariable String accountCode,
+                                                     Pageable pageable) {
+        Page<ShopInvoice> entities = this.invoiceRepository.findAllByShopCodeAndAccountCode(shopCode, accountCode, pageable);
         return entities.map(InvoiceSchema::fromEntity);
     }
 
