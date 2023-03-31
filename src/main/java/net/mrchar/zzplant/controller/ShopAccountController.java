@@ -131,7 +131,7 @@ public class ShopAccountController {
         private BigDecimal amount;
     }
 
-    @PostMapping("/shop/{shopCode}/account/{accountCode}/top-up")
+    @PostMapping("/shops/{shopCode}/accounts/{accountCode}/top-up")
     public void topUp(@PathVariable String shopCode, @PathVariable String accountCode, @RequestBody TopUpRequest topUpRequest) {
         this.shopAccountService.topUp(shopCode, accountCode, topUpRequest.getAmount());
     }
