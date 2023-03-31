@@ -72,7 +72,7 @@ class ShopServiceImplTest {
         String shopAccountName = RandomStringUtils.randomAlphanumeric(1, 10);
         Gender gender = Arrays.asList(MALE, FEMALE, null).get(RandomUtils.nextInt(0, 3));
         String shopAccountPhoneNumber = RandomStringUtils.randomNumeric(11);
-        ShopAccount shopAccount = this.shopService.addShopAccount(shop.getCode(), shopAccountName, gender, shopAccountPhoneNumber);
+        ShopAccount shopAccount = this.shopService.addShopAccount(shop.getCode(), shopAccountName, gender, shopAccountPhoneNumber, BigDecimal.ZERO);
 
         assertThat(shopAccount.getCode()).isNotBlank();
         assertThat(shopAccount.getName()).isEqualTo(shopAccountName);
@@ -89,7 +89,7 @@ class ShopServiceImplTest {
         String shopAccountName = RandomStringUtils.randomAlphanumeric(1, 10);
         Gender gender = Arrays.asList(MALE, FEMALE, null).get(RandomUtils.nextInt(0, 3));
         String shopAccountPhoneNumber = RandomStringUtils.randomNumeric(11);
-        ShopAccount shopAccount = this.shopService.addShopAccount(shop.getCode(), shopAccountName, gender, shopAccountPhoneNumber);
+        ShopAccount shopAccount = this.shopService.addShopAccount(shop.getCode(), shopAccountName, gender, shopAccountPhoneNumber, BigDecimal.ZERO);
 
         // TODO: 添加商品
 

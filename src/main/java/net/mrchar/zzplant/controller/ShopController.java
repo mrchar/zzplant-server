@@ -46,7 +46,6 @@ public class ShopController {
             this.code = code;
             this.name = name;
             this.address = address;
-            this.owner = owner;
         }
 
         public static ShopSchema fromEntity(Shop entity) {
