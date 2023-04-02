@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import net.mrchar.zzplant.exception.ForbiddenOperationException;
 import net.mrchar.zzplant.exception.ResourceNotExistsException;
+import net.mrchar.zzplant.model.ShopAssistant;
 import net.mrchar.zzplant.model.ShopBill;
 import net.mrchar.zzplant.model.ShopBillCommodity;
 import net.mrchar.zzplant.repository.ShopBillRespository;
@@ -15,6 +16,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +28,21 @@ import java.util.stream.Collectors;
 public class ShopBillController {
     private final ShopBillRespository shopBillRespository;
     private final ShopService shopService;
+
+    @Data
+    public static class ShopAssistantSchema {
+        private String code;
+        private String name;
+
+        public ShopAssistantSchema(String code, String name) {
+            this.code = code;
+            this.name = name;
+        }
+
+        public static ShopAssistantSchema fromEntity(ShopAssistant entity) {
+            return new ShopAssistantSchema(entity.getCode(), entity.getName());
+        }
+    }
 
     @Data
     public static class CommoditySchema {
@@ -57,27 +74,38 @@ public class ShopBillController {
     @Data
     public static class ShopBillSchema {
         private String code;
+        private String shop;
+        private String shopAccount;
         private List<CommoditySchema> commodities;
         private BigDecimal amount;
-        private String shopAccount;
-        private String shop;
+        private ShopAssistantSchema operator;
+        private ZonedDateTime createDateTime;
 
-        public ShopBillSchema(String code, List<CommoditySchema> commodities, BigDecimal amount, String shopAccount, String shop) {
+        public ShopBillSchema(String code,
+                              String shop, String shopAccount,
+                              List<CommoditySchema> commodities, BigDecimal amount,
+                              ShopAssistantSchema operator, ZonedDateTime createDateTime) {
             this.code = code;
+            this.shop = shop;
+            this.shopAccount = shopAccount;
             this.commodities = commodities;
             this.amount = amount;
-            this.shopAccount = shopAccount;
-            this.shop = shop;
+            this.operator = operator;
+            this.createDateTime = createDateTime;
         }
 
         public static ShopBillSchema fromEntity(ShopBill entity) {
             List<CommoditySchema> commoditySchemas = entity.getCommodities().stream().map(CommoditySchema::fromEntity).collect(Collectors.toList());
             return new ShopBillSchema(
                     entity.getCode(),
+                    entity.getShop().getCode(),
+                    entity.getShopAccount().getCode(),
                     commoditySchemas,
                     entity.getAmount(),
-                    entity.getShopAccount().getCode(),
-                    entity.getShop().getCode());
+                    ShopAssistantSchema.fromEntity(entity.getOperator()),
+                    entity.getCreateDateTime()
+            );
+
         }
     }
 
@@ -100,7 +128,7 @@ public class ShopBillController {
         return entities.map(ShopBillSchema::fromEntity);
     }
 
-    @GetMapping("/shops/{shopCode}/bill/{billCode}")
+    @GetMapping("/shops/{shopCode}/bills/{billCode}")
     @Transactional
     public ShopBillSchema getBill(@PathVariable String shopCode, @PathVariable String billCode) {
         boolean exists = this.shopService.operatorIsAssistant(shopCode);
