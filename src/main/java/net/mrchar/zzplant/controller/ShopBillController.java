@@ -188,7 +188,7 @@ public class ShopBillController {
     @Data
     public static class ConfirmBillRequest {
         private String billCode;
-        private List<CommoditySchema> commodities;
+        private Map<String, Integer> commodities;
         private BigDecimal amount;
     }
 
@@ -196,7 +196,8 @@ public class ShopBillController {
     @PostMapping("/shops/{shopCode}/payment")
     public ShopBillSchema confirmBill(@PathVariable String shopCode,
                                       @RequestBody ConfirmBillRequest request) {
+        ShopBill entity = this.shopService.confirmBill(shopCode, request.getBillCode(), request.getCommodities(), request.getAmount());
         // 确认支付
-        return null;
+        return ShopBillSchema.fromEntity(entity);
     }
 }

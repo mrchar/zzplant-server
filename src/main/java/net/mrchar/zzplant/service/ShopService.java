@@ -50,20 +50,23 @@ public interface ShopService {
     /**
      * 创建账单
      *
-     * @param shopCode       商铺编号
-     * @param accountCode    会员编号
-     * @param commodityCodes 商品编号列表
+     * @param shopCode    商铺编号
+     * @param accountCode 会员编号
+     * @param commodities 商品编号列表
      * @return 账单信息
      */
-    ShopBill addBill(String shopCode, String accountCode, Map<String, Integer> commodityCodes);
+    ShopBill addBill(String shopCode, String accountCode, Map<String, Integer> commodities);
 
     /**
-     * 判断当前操作的用户是否是指定店铺的店员
+     * 修改订单
      *
-     * @param shopCode 判断当前用户是否是指定店铺的店员
-     * @return
+     * @param shopCode    商铺编号
+     * @param billCode    订单编号
+     * @param commodities 商品列表
+     * @return 订单信息
      */
-    boolean operatorIsAssistant(String shopCode);
+    ShopBill modifyBill(String shopCode, String billCode, Map<String, Integer> commodities);
+
 
     /**
      * 删除订单
@@ -72,4 +75,23 @@ public interface ShopService {
      * @param billCode 订单编号
      */
     void deleteBill(String shopCode, String billCode);
+
+    /**
+     * 确认订单
+     *
+     * @param shopCode    商铺编码
+     * @param billCode    订单编码
+     * @param commodities 商品列表
+     * @param amount      支付总额
+     * @return 订单信息
+     */
+    ShopBill confirmBill(String shopCode, String billCode, Map<String, Integer> commodities, BigDecimal amount);
+
+    /**
+     * 判断当前操作的用户是否是指定店铺的店员
+     *
+     * @param shopCode 判断当前用户是否是指定店铺的店员
+     * @return
+     */
+    boolean operatorIsAssistant(String shopCode);
 }
