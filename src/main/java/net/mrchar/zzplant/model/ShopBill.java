@@ -48,14 +48,16 @@ public class ShopBill extends AbstractPersistable<UUID> {
     public ShopBill() {
     }
 
-    public ShopBill(Set<ShopBillCommodity> commodities,
-                    BigDecimal amount,
+    public ShopBill(Shop shop,
                     ShopAccount shopAccount,
-                    Shop shop) {
+                    Set<ShopBillCommodity> commodities,
+                    BigDecimal amount,
+                    ShopAssistant operator) {
+        this.shop = shop;
+        this.shopAccount = shopAccount;
         this.commodities = commodities;
         this.amount = amount;
-        this.shopAccount = shopAccount;
-        this.shop = shop;
+        this.operator = operator;
     }
 
     @PrePersist
@@ -63,5 +65,6 @@ public class ShopBill extends AbstractPersistable<UUID> {
         this.code = RandomStringUtils
                 .randomAlphanumeric(CODE_LENGTH)
                 .toLowerCase();
+        this.createDateTime = ZonedDateTime.now();
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -105,7 +106,17 @@ public class ShopServiceImpl implements ShopService {
 
 
     @Override
+    @Transactional
     public ShopBill addBill(String shopCode, String accountCode, Map<String, Integer> commodities) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null) {
+            throw new UnExpectedException("查询不到当前正在操作的店员信息");
+        }
+
+        ShopAssistant operator = this.assistantRepository
+                .findOneByShopCodeAndAccountName(shopCode, authentication.getName())
+                .orElseThrow(() -> new UnExpectedException("查询不到当前正在操作的店员信息"));
+
         Shop shop = this.shopRepository.findOneByCode(shopCode)
                 .orElseThrow(() -> new ResourceNotExistsException("店铺不存在"));
 
@@ -131,13 +142,13 @@ public class ShopServiceImpl implements ShopService {
                 })
                 .collect(Collectors.toSet());
         // 计算账单总价
-        BigDecimal amount = commodityEntities.stream()
-                .reduce(BigDecimal.ZERO, (sum, commodity) -> {
-                    sum.add(commodity.getPrice());
-                    return sum;
-                }, null);
+        BigDecimal amount = BigDecimal.ZERO;
+        if (!CollectionUtils.isEmpty(shopBillCommodities)) {
+            amount = shopBillCommodities.stream()
+                    .reduce(BigDecimal.ZERO, (sum, commodity) -> sum.add(commodity.getAmount()), null);
+        }
 
-        ShopBill shopBill = new ShopBill(shopBillCommodities, amount, shopAccount, shop);
+        ShopBill shopBill = new ShopBill(shop, shopAccount, shopBillCommodities, amount, operator);
         return this.shopBillRespository.save(shopBill);
     }
 
@@ -148,7 +159,9 @@ public class ShopServiceImpl implements ShopService {
             return false;
         }
 
-        return this.assistantRepository
-                .existsByShopCodeAndAccountName(shopCode, authentication.getName());
+        Optional<ShopAssistant> optional = this.assistantRepository
+                .findOneByShopCodeAndAccountName(shopCode, authentication.getName());
+
+        return optional.isPresent();
     }
 }
