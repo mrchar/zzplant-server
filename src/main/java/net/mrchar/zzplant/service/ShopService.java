@@ -64,4 +64,12 @@ public interface ShopService {
      * @return
      */
     boolean operatorIsAssistant(String shopCode);
+
+    /**
+     * 删除订单
+     *
+     * @param shopCode 商铺编号
+     * @param billCode 订单编号
+     */
+    void deleteBill(String shopCode, String billCode);
 }

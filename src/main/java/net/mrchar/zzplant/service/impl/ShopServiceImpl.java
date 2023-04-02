@@ -164,4 +164,15 @@ public class ShopServiceImpl implements ShopService {
 
         return optional.isPresent();
     }
+
+    @Override
+    @Transactional
+    public void deleteBill(String shopCode, String billCode) {
+        ShopBill entity = this.shopBillRespository.findOneByShopCodeAndCode(shopCode, billCode)
+                .orElseThrow(() -> new ResourceNotExistsException("订单不存在"));
+
+        // TODO: 处理交易
+        
+        this.shopBillRespository.deleteById(entity.getId());
+    }
 }

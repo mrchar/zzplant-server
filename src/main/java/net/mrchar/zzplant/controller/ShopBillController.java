@@ -182,7 +182,7 @@ public class ShopBillController {
 
     @DeleteMapping("/shops/{shopCode}/bills/{billCode}")
     public void deleteBill(@PathVariable String shopCode, @PathVariable String billCode) {
-        // 删除订单
+        this.shopService.deleteBill(shopCode, billCode);
     }
 
     @Data
