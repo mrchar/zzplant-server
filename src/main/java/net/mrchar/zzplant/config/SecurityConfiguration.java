@@ -1,6 +1,7 @@
 package net.mrchar.zzplant.config;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -16,6 +17,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
+@Slf4j
 @Configuration
 @Import(CorsProperties.class)
 @RequiredArgsConstructor
@@ -29,6 +31,7 @@ public class SecurityConfiguration {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        log.info("AllowedOrigins: {}", this.properties.getOrigins().toString());
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(this.properties.getOrigins());
         configuration.setAllowedMethods(this.properties.getMethods());

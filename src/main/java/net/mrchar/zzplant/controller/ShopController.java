@@ -2,33 +2,26 @@ package net.mrchar.zzplant.controller;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import net.mrchar.zzplant.exception.ForbiddenOperationException;
 import net.mrchar.zzplant.exception.ResourceNotExistsException;
-import net.mrchar.zzplant.exception.UnExpectedException;
-import net.mrchar.zzplant.model.*;
-import net.mrchar.zzplant.repository.ShopAccountRepository;
+import net.mrchar.zzplant.model.Shop;
+import net.mrchar.zzplant.model.ShopAssistant;
+import net.mrchar.zzplant.model.User;
 import net.mrchar.zzplant.repository.ShopAssistantRepository;
 import net.mrchar.zzplant.repository.ShopRepository;
-import net.mrchar.zzplant.repository.UserRepository;
 import net.mrchar.zzplant.service.ShopService;
+import net.mrchar.zzplant.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-
-import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class ShopController {
-    private final UserRepository userRepository;
     private final ShopRepository shopRepository;
     private final ShopAssistantRepository assistantRepository;
-    private final ShopAccountRepository shopAccountRepository;
+    private final UserService userService;
     private final ShopService shopService;
 
     @Data
@@ -46,7 +39,6 @@ public class ShopController {
             this.code = code;
             this.name = name;
             this.address = address;
-            this.owner = owner;
         }
 
         public static ShopSchema fromEntity(Shop entity) {
@@ -67,7 +59,7 @@ public class ShopController {
     @GetMapping("/shops")
     @Transactional
     public Page<ShopSchema> listShops(Pageable pageable) {
-        User user = this.getCurrentOperator();
+        User user = this.userService.getCurrentOperator();
         Page<Shop> entities = this.shopRepository.findAllByOwner(user, pageable);
         return entities.map(ShopSchema::fromEntity);
     }
@@ -80,24 +72,9 @@ public class ShopController {
 
     @PostMapping("/shops")
     public ShopSchema addShop(@RequestBody SetShopRequest request) {
-        User user = getCurrentOperator();
+        User user = this.userService.getCurrentOperator();
         Shop shop = this.shopService.addShop(request.getName(), request.getAddress(), user);
         return ShopSchema.fromEntity(shop);
-    }
-
-    private User getCurrentOperator() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null) {
-            throw new UnExpectedException("没有找到账户信息，请重新登录");
-        }
-
-        String accountName = authentication.getName();
-        if (accountName == null) {
-            throw new UnExpectedException("没有找到账户信息，请重新登录");
-        }
-
-        return this.userRepository.findOneByAccountName(accountName)
-                .orElseThrow(() -> new UnExpectedException("找不到当前账户对应的用户信息"));
     }
 
     @PutMapping("/shops/{shopCode}")
@@ -133,7 +110,7 @@ public class ShopController {
     @GetMapping("/shops/{shopCode}/assistants")
     @Transactional
     public Page<ShopAssistantSchema> listShopAssistants(@PathVariable String shopCode, Pageable pageable) {
-        User owner = this.getCurrentOperator();
+        User owner = this.userService.getCurrentOperator();
         boolean exists = this.shopRepository.existsByShopCodeAndOwner(shopCode, owner);
         if (!exists) {
             throw new ResourceNotExistsException("商铺不存在");
@@ -156,7 +133,7 @@ public class ShopController {
     @Transactional
     public ShopAssistantSchema addShopAssistant(@PathVariable String shopCode, // 商铺编号
                                                 @RequestBody AddShopAssistant request) {
-        User owner = this.getCurrentOperator();
+        User owner = this.userService.getCurrentOperator();
         boolean exists = this.shopRepository.existsByShopCodeAndOwner(shopCode, owner);
         if (!exists) {
             throw new ResourceNotExistsException("商铺不存在");
@@ -175,98 +152,4 @@ public class ShopController {
         return null;
     }
 
-    @Data
-    public static class ShopAccountSchema {
-        private String code;
-        private String name;
-        private String gender;
-        private String phoneNumber;
-        private BigDecimal balance;
-        private String shop;
-
-        public ShopAccountSchema(String code, String name, String gender, String phoneNumber, BigDecimal balance) {
-            this.code = code;
-            this.name = name;
-            this.gender = gender;
-            this.phoneNumber = phoneNumber;
-            this.balance = balance;
-        }
-
-        public static ShopAccountSchema fromEntity(ShopAccount entity) {
-            String gender = "UNKNOWN";
-            if (entity.getGender() != null) {
-                gender = entity.getGender().toString();
-            }
-            ShopAccountSchema schema = new ShopAccountSchema(
-                    entity.getCode(),
-                    entity.getName(),
-                    gender,
-                    entity.getPhoneNumber(),
-                    entity.getBalance()
-            );
-
-            if (entity.getShop() != null) {
-                schema.setShop(entity.getShop().getCode());
-            }
-
-            return schema;
-        }
-    }
-
-
-    @GetMapping("/shops/{shopCode}/accounts")
-    @Transactional
-    public Page<ShopAccountSchema> listShopAccounts(@PathVariable String shopCode,
-                                                    @RequestParam(required = false) String keyword,
-                                                    Pageable pageable) {
-        Page<ShopAccount> entities = null;
-        if (StringUtils.hasText(keyword)) {
-            entities = this.shopAccountRepository.searchShopAccountOfShop(shopCode, keyword, pageable);
-        } else {
-            entities = this.shopAccountRepository.findAllByShopCode(shopCode, pageable);
-        }
-        return entities.map(ShopAccountSchema::fromEntity);
-    }
-
-    @GetMapping("/shops/{shopCode}/accounts/{accountCode}")
-    @Transactional
-    public ShopAccountSchema getShopAccount(@PathVariable String shopCode, @PathVariable String accountCode) {
-        ShopAccount entity = this.shopRepository.findOneByShopCodeAndCode(shopCode, accountCode)
-                .orElseThrow(() -> new ResourceNotExistsException("会员不存在"));
-        return ShopAccountSchema.fromEntity(entity);
-    }
-
-    @Data
-    public static class AddShopAccountRequest {
-        private String name;
-        private String gender;
-        private String phoneNumber;
-        private BigDecimal balance;
-    }
-
-    @PostMapping("/shops/{shopCode}/accounts")
-    public ShopAccountSchema addShopAccount(@PathVariable String shopCode,
-                                            @RequestBody AddShopAccountRequest request) {
-        User operator = this.getCurrentOperator();
-        boolean exists = this.shopRepository.existsByShopCodeAndOwner(shopCode, operator);
-        if (!exists) {
-            throw new ForbiddenOperationException("只有商铺的所有者可以创建会员");
-        }
-
-
-        ShopAccount entity = shopService.addShopAccount(
-                shopCode, request.getName(),
-                Gender.fromString(request.getGender()),
-                request.getPhoneNumber(),
-                request.getBalance());
-        // 添加会员
-        return ShopAccountSchema.fromEntity(entity);
-    }
-
-    @DeleteMapping("/shops/{shopCode}/accounts/{accountCode}")
-    public ShopAccountSchema removeShopAccount(@PathVariable String shopCode,
-                                               @PathVariable String accountCode) {
-        // 移除会员
-        return null;
-    }
 }

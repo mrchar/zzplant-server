@@ -19,8 +19,8 @@
                 <tableExists tableName="shop_assistant"/>
                 <tableExists tableName="shop_commodity"/>
                 <tableExists tableName="shop_account"/>
-                <tableExists tableName="shop_invoice"/>
-                <tableExists tableName="shop_invoice_commodity"/>
+                <tableExists tableName="shop_bill"/>
+                <tableExists tableName="shop_bill_commodity"/>
             </not>
         </preConditions>
         <rollback>
@@ -31,8 +31,8 @@
             <dropTable tableName="shop_assistant"/>
             <dropTable tableName="shop_commodity"/>
             <dropTable tableName="shop_account"/>
-            <dropTable tableName="shop_invoice"/>
-            <dropTable tableName="shop_invoice_commodity"/>
+            <dropTable tableName="shop_bill"/>
+            <dropTable tableName="shop_bill_commodity"/>
         </rollback>
         <createTable tableName="account">
             <column name="id" type="uuid">
@@ -151,7 +151,7 @@
             <column name="name" type="varchar(100)">
                 <constraints nullable="false"/>
             </column>
-            <column name="price" type="decimal(,3)">
+            <column name="price" type="decimal(8,2)">
                 <constraints nullable="false"/>
             </column>
             <column name="off_shelf" type="boolean" defaultValueBoolean="false">
@@ -191,7 +191,7 @@
             <column name="phone_number" type="varchar(50)">
                 <constraints nullable="false"/>
             </column>
-            <column name="balance" type="decimal(,3)" defaultValueNumeric="0">
+            <column name="balance" type="decimal(8,2)" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
             <column name="password" type="varchar(100)"/>
@@ -210,37 +210,77 @@
         <addUniqueConstraint constraintName="uk_shop_has_unique_account_for_certain_user"
                              tableName="shop_account"
                              columnNames="shop_id,user_id"/>
-        <createTable tableName="shop_invoice">
+        <createTable tableName="shop_transaction">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="varchar(10)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="shop_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="shop_account_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="decimal(8,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="previous_balance" type="decimal(8,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="current_balance" type="decimal(8,2)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="shop_bill">
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="code" type="varchar(16)">
                 <constraints nullable="false"/>
             </column>
-            <column name="amount" type="decimal(,3)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="account_id" type="uuid">
-                <constraints foreignKeyName="fk_invoice_belongs_to_shop_account"
-                             referencedTableName="shop_account"
-                             referencedColumnNames="id"
-                             nullable="false"
-                />
-            </column>
             <column name="shop_id" type="uuid">
-                <constraints foreignKeyName="fk_invoice_belongs_to_shop"
+                <constraints foreignKeyName="fk_bill_belongs_to_shop"
                              referencedTableName="shop"
                              referencedColumnNames="id"
                              nullable="false"
                 />
             </column>
+            <column name="shop_account_id" type="uuid">
+                <constraints foreignKeyName="fk_bill_belongs_to_shop_account"
+                             referencedTableName="shop_account"
+                             referencedColumnNames="id"
+                             nullable="false"
+                />
+            </column>
+            <column name="amount" type="decimal(8,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="shop_transaction_id" type="uuid">
+                <constraints foreignKeyName="fk_bill_has_one_transaction"
+                             referencedTableName="shop_transaction"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="operator_id" type="uuid">
+                <constraints foreignKeyName="fk_bill_operated_by_shop_assistant"
+                             referencedTableName="shop_assistant"
+                             referencedColumnNames="id"
+                             nullable="false"/>
+            </column>
+            <column name="create_date_time" type="datetime">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
-        <addUniqueConstraint constraintName="uk_shop_has_unique_invoice_code"
-                             tableName="shop_invoice"
+        <addUniqueConstraint constraintName="uk_shop_has_unique_bill_code"
+                             tableName="shop_bill"
                              columnNames="shop_id,code"
         />
-        <createTable tableName="shop_invoice_commodity">
-            <column name="invoice_id" type="uuid">
+        <createTable tableName="shop_bill_commodity">
+            <column name="bill_id" type="uuid">
                 <constraints nullable="false"/>
             </column>
             <column name="code" type="varchar(8)">
@@ -249,13 +289,13 @@
             <column name="name" type="varchar(100)">
                 <constraints nullable="false"/>
             </column>
-            <column name="price" type="decimal(,3)">
+            <column name="price" type="decimal(8,2)">
                 <constraints nullable="false"/>
             </column>
             <column name="quantity" type="bigint">
                 <constraints nullable="false"/>
             </column>
-            <column name="amount" type="decimal(,3)">
+            <column name="amount" type="decimal(8,2)">
                 <constraints nullable="false"/>
             </column>
         </createTable>

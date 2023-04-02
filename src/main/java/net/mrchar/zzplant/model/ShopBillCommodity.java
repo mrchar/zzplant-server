@@ -14,22 +14,22 @@ import java.math.BigDecimal;
 @Embeddable
 @Builder(setterPrefix = "with")
 @AllArgsConstructor
-public class ShopInvoiceCommodity {
+public class ShopBillCommodity {
     @Column(name = "code")
-    private String code;
+    private String code; // 商品编号
 
     @Column(name = "name")
-    private String name;
+    private String name; // 商品名称
 
     @Column(name = "price")
-    private BigDecimal price;
+    private BigDecimal price; // 下单价格
 
     @Column(name = "quantity")
-    private Integer quantity; // 数量
+    private Integer quantity; // 下单数量
 
     @Column(name = "amount")
-    private BigDecimal amount; // 总额
+    private BigDecimal amount; // 费用总额
 
-    public ShopInvoiceCommodity() {
+    public ShopBillCommodity() {
     }
 }

@@ -1,9 +1,11 @@
 package net.mrchar.zzplant.repository;
 
+import jakarta.persistence.LockModeType;
 import net.mrchar.zzplant.model.ShopAccount;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -62,4 +64,14 @@ public interface ShopAccountRepository extends JpaRepository<ShopAccount, UUID> 
      */
     @Query("select account from ShopAccount account where account.shop.code = :shopCode and account.code = :accountCode")
     Optional<ShopAccount> findOneByShopCodeAndCode(String shopCode, String accountCode);
+
+    /**
+     * 获取指定的商铺中的会员，并锁行
+     *
+     * @param id 商铺会员ID
+     * @return 会员信息
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select account from ShopAccount account where account.id = :id")
+    Optional<ShopAccount> findOneByIdForUpdate(UUID id);
 }

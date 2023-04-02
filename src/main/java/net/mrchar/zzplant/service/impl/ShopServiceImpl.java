@@ -5,12 +5,14 @@ import net.mrchar.zzplant.exception.ResourceAlreadyExistsException;
 import net.mrchar.zzplant.exception.ResourceNotExistsException;
 import net.mrchar.zzplant.exception.UnExpectedException;
 import net.mrchar.zzplant.model.*;
+import net.mrchar.zzplant.model.ShopTransaction.Type;
 import net.mrchar.zzplant.repository.*;
 import net.mrchar.zzplant.service.ShopService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -30,7 +32,8 @@ public class ShopServiceImpl implements ShopService {
     private final ShopAssistantRepository assistantRepository;
     private final ShopCommodityRepository commodityRepository;
     private final ShopAccountRepository shopAccountRepository;
-    private final ShopInvoiceRepository invoiceRepository;
+    private final ShopBillRespository shopBillRespository;
+    private final ShopTransactionRepository shopTransactionRepository;
 
     @Override
     @Transactional
@@ -96,7 +99,7 @@ public class ShopServiceImpl implements ShopService {
 
         Shop shop = this.shopRepository.findOneByCode(shopCode)
                 .orElseThrow(() -> new UnExpectedException("要操作的商铺不存在"));
-        
+
         ShopAccount shopAccount = new ShopAccount(name, gender, VIP, phoneNumber, balance, shop);
         this.shopAccountRepository.save(shopAccount);
 
@@ -105,22 +108,45 @@ public class ShopServiceImpl implements ShopService {
 
 
     @Override
-    public ShopInvoice addInvoice(String shopCode, String accountCode, Map<String, Integer> commodities) {
+    @Transactional
+    public ShopBill addBill(String shopCode, String accountCode, Map<String, Integer> commodities) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null) {
+            throw new UnExpectedException("查询不到当前正在操作的店员信息");
+        }
+
+        ShopAssistant operator = this.assistantRepository
+                .findOneByShopCodeAndAccountName(shopCode, authentication.getName())
+                .orElseThrow(() -> new UnExpectedException("查询不到当前正在操作的店员信息"));
+
         Shop shop = this.shopRepository.findOneByCode(shopCode)
                 .orElseThrow(() -> new ResourceNotExistsException("店铺不存在"));
 
         ShopAccount shopAccount = this.shopAccountRepository.findOneByShopCodeAndCode(shopCode, accountCode)
                 .orElseThrow(() -> new ResourceNotExistsException("会员不存在"));
 
+        Set<ShopBillCommodity> shopBillCommodities = generateShopBillCommodities(shopCode, commodities);
+        // 计算账单总价
+        BigDecimal amount = BigDecimal.ZERO;
+        if (!CollectionUtils.isEmpty(shopBillCommodities)) {
+            amount = shopBillCommodities.stream()
+                    .reduce(BigDecimal.ZERO, (sum, commodity) -> sum.add(commodity.getAmount()), null);
+        }
+
+        ShopBill shopBill = new ShopBill(shop, shopAccount, shopBillCommodities, amount, operator);
+        return this.shopBillRespository.save(shopBill);
+    }
+
+    private Set<ShopBillCommodity> generateShopBillCommodities(String shopCode, Map<String, Integer> commodities) {
         List<ShopCommodity> commodityEntities = this.commodityRepository
                 .findAllByShopCodeAndCodeIn(shopCode, commodities.keySet());
-        Set<ShopInvoiceCommodity> shopInvoiceCommodities = commodityEntities.stream()
+        return commodityEntities.stream()
                 .map(entity -> {
                     // 获取商品数量
                     Integer quantity = commodities.get(entity.getCode());
                     // 获取当前商品总价
                     BigDecimal amount = entity.getPrice().multiply(BigDecimal.valueOf(quantity));
-                    return ShopInvoiceCommodity
+                    return ShopBillCommodity
                             .builder()
                             .withCode(entity.getCode())
                             .withName(entity.getName())
@@ -130,15 +156,54 @@ public class ShopServiceImpl implements ShopService {
                             .build();
                 })
                 .collect(Collectors.toSet());
-        // 计算账单总价
-        BigDecimal amount = commodityEntities.stream()
-                .reduce(BigDecimal.ZERO, (sum, commodity) -> {
-                    sum.add(commodity.getPrice());
-                    return sum;
-                }, null);
+    }
 
-        ShopInvoice shopInvoice = new ShopInvoice(shopInvoiceCommodities, amount, shopAccount, shop);
-        return this.invoiceRepository.save(shopInvoice);
+    @Override
+    @Transactional
+    public ShopBill modifyBill(String shopCode, String billCode, Map<String, Integer> commodities) {
+        ShopBill entity = this.shopBillRespository.findOneByShopCodeAndCode(shopCode, billCode)
+                .orElseThrow(() -> new ResourceNotExistsException("订单不存在"));
+
+
+        Set<ShopBillCommodity> shopBillCommodities = generateShopBillCommodities(shopCode, commodities);
+        // 计算账单总价
+        BigDecimal amount = BigDecimal.ZERO;
+        if (!CollectionUtils.isEmpty(shopBillCommodities)) {
+            amount = shopBillCommodities.stream()
+                    .map(ShopBillCommodity::getAmount)
+                    .reduce(BigDecimal.ZERO, (sum, item) -> sum.add(item));
+        }
+
+        entity.setCommodities(shopBillCommodities);
+        entity.setAmount(amount);
+        this.shopBillRespository.save(entity);
+
+        return entity;
+    }
+
+
+    @Override
+    @Transactional
+    public void deleteBill(String shopCode, String billCode) {
+        ShopBill entity = this.shopBillRespository.findOneByShopCodeAndCode(shopCode, billCode)
+                .orElseThrow(() -> new ResourceNotExistsException("订单不存在"));
+
+        this.shopBillRespository.deleteById(entity.getId());
+    }
+
+
+    @Override
+    @Transactional
+    public ShopBill confirmBill(String shopCode, String billCode, Map<String, Integer> commodities, BigDecimal amount) {
+        ShopBill entity = this.modifyBill(shopCode, billCode, commodities);
+
+        ShopTransaction transaction = new ShopTransaction(entity.getShopAccount(), Type.PAYMENT, amount.negate());
+        this.shopTransactionRepository.save(transaction);
+
+        entity.setShopTransaction(transaction);
+        this.shopBillRespository.save(entity);
+
+        return entity;
     }
 
     @Override
@@ -148,7 +213,9 @@ public class ShopServiceImpl implements ShopService {
             return false;
         }
 
-        return this.assistantRepository
-                .existsByShopCodeAndAccountName(shopCode, authentication.getName());
+        Optional<ShopAssistant> optional = this.assistantRepository
+                .findOneByShopCodeAndAccountName(shopCode, authentication.getName());
+
+        return optional.isPresent();
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -27,10 +28,10 @@ public interface ShopAssistantRepository extends JpaRepository<ShopAssistant, UU
      *
      * @param shopCode    商铺编号
      * @param accountName 账户名称
-     * @return 是否是店铺员工
+     * @return 员工信息
      */
-    @Query("select (count(1) > 0) from ShopAssistant assistant " +
+    @Query("select assistant from ShopAssistant assistant " +
             "where assistant.shop.code = :shopCode " +
             "and assistant.user.account.name = :accountName")
-    boolean existsByShopCodeAndAccountName(String shopCode, String accountName);
+    Optional<ShopAssistant> findOneByShopCodeAndAccountName(String shopCode, String accountName);
 }
