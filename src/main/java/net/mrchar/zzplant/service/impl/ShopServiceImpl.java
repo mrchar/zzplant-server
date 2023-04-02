@@ -170,7 +170,8 @@ public class ShopServiceImpl implements ShopService {
         BigDecimal amount = BigDecimal.ZERO;
         if (!CollectionUtils.isEmpty(shopBillCommodities)) {
             amount = shopBillCommodities.stream()
-                    .reduce(BigDecimal.ZERO, (sum, commodity) -> sum.add(commodity.getAmount()), null);
+                    .map(ShopBillCommodity::getAmount)
+                    .reduce(BigDecimal.ZERO, (sum, item) -> sum.add(item));
         }
 
         entity.setCommodities(shopBillCommodities);
@@ -187,8 +188,6 @@ public class ShopServiceImpl implements ShopService {
         ShopBill entity = this.shopBillRespository.findOneByShopCodeAndCode(shopCode, billCode)
                 .orElseThrow(() -> new ResourceNotExistsException("订单不存在"));
 
-        // TODO: 处理交易
-
         this.shopBillRespository.deleteById(entity.getId());
     }
 
@@ -200,6 +199,9 @@ public class ShopServiceImpl implements ShopService {
 
         ShopTransaction transaction = new ShopTransaction(entity.getShopAccount(), Type.PAYMENT, amount.negate());
         this.shopTransactionRepository.save(transaction);
+
+        entity.setShopTransaction(transaction);
+        this.shopBillRespository.save(entity);
 
         return entity;
     }

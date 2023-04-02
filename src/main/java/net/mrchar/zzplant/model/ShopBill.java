@@ -36,7 +36,11 @@ public class ShopBill extends AbstractPersistable<UUID> {
     private Set<ShopBillCommodity> commodities;
 
     @Column(name = "amount")
-    private BigDecimal amount;
+    private BigDecimal amount; // 商品总值
+
+    @OneToOne
+    @JoinColumn(name = "shop_transaction_id")
+    private ShopTransaction shopTransaction;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "operator_id")

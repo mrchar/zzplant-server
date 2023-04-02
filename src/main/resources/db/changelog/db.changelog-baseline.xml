@@ -210,6 +210,32 @@
         <addUniqueConstraint constraintName="uk_shop_has_unique_account_for_certain_user"
                              tableName="shop_account"
                              columnNames="shop_id,user_id"/>
+        <createTable tableName="shop_transaction">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="varchar(10)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="shop_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="shop_account_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="decimal(8,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="previous_balance" type="decimal(8,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="current_balance" type="decimal(8,2)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
         <createTable tableName="shop_bill">
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
@@ -233,6 +259,11 @@
             </column>
             <column name="amount" type="decimal(8,2)">
                 <constraints nullable="false"/>
+            </column>
+            <column name="shop_transaction_id" type="uuid">
+                <constraints foreignKeyName="fk_bill_has_one_transaction"
+                             referencedTableName="shop_transaction"
+                             referencedColumnNames="id"/>
             </column>
             <column name="operator_id" type="uuid">
                 <constraints foreignKeyName="fk_bill_operated_by_shop_assistant"
@@ -265,32 +296,6 @@
                 <constraints nullable="false"/>
             </column>
             <column name="amount" type="decimal(8,2)">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-        <createTable tableName="shop_transaction">
-            <column name="id" type="uuid">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="code" type="varchar(10)">
-                <constraints unique="true" nullable="false"/>
-            </column>
-            <column name="shop_id" type="uuid">
-                <constraints nullable="false"/>
-            </column>
-            <column name="shop_account_id" type="uuid">
-                <constraints nullable="false"/>
-            </column>
-            <column name="type" type="varchar(10)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="amount" type="decimal(8,2)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="previous_balance" type="decimal(8,2)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="current_balance" type="decimal(8,2)">
                 <constraints nullable="false"/>
             </column>
         </createTable>

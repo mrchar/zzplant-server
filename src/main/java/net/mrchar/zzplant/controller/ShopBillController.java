@@ -1,5 +1,6 @@
 package net.mrchar.zzplant.controller;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import net.mrchar.zzplant.exception.ForbiddenOperationException;
@@ -7,6 +8,7 @@ import net.mrchar.zzplant.exception.ResourceNotExistsException;
 import net.mrchar.zzplant.model.ShopAssistant;
 import net.mrchar.zzplant.model.ShopBill;
 import net.mrchar.zzplant.model.ShopBillCommodity;
+import net.mrchar.zzplant.model.ShopTransaction;
 import net.mrchar.zzplant.repository.ShopBillRespository;
 import net.mrchar.zzplant.service.ShopService;
 import org.springframework.data.domain.Page;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -72,36 +75,67 @@ public class ShopBillController {
     }
 
     @Data
+    public static class ShopTransactionSchema {
+        private String code;
+        private BigDecimal amount;
+        private BigDecimal previousBalance;
+        private BigDecimal currentBalance;
+
+        public ShopTransactionSchema(String code, BigDecimal amount, BigDecimal previousBalance, BigDecimal currentBalance) {
+            this.code = code;
+            this.amount = amount;
+            this.previousBalance = previousBalance;
+            this.currentBalance = currentBalance;
+        }
+
+        public static ShopTransactionSchema fromEntity(ShopTransaction entity) {
+            return new ShopTransactionSchema(entity.getCode(),
+                    entity.getAmount(),
+                    entity.getPreviousBalance(),
+                    entity.getCurrentBalance());
+        }
+    }
+
+    @Data
     public static class ShopBillSchema {
         private String code;
         private String shop;
         private String shopAccount;
         private List<CommoditySchema> commodities;
         private BigDecimal amount;
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private ShopTransactionSchema transaction;
         private ShopAssistantSchema operator;
         private ZonedDateTime createDateTime;
 
         public ShopBillSchema(String code,
                               String shop, String shopAccount,
                               List<CommoditySchema> commodities, BigDecimal amount,
+                              ShopTransactionSchema transaction,
                               ShopAssistantSchema operator, ZonedDateTime createDateTime) {
             this.code = code;
             this.shop = shop;
             this.shopAccount = shopAccount;
             this.commodities = commodities;
             this.amount = amount;
+            this.transaction = transaction;
             this.operator = operator;
             this.createDateTime = createDateTime;
         }
 
         public static ShopBillSchema fromEntity(ShopBill entity) {
             List<CommoditySchema> commoditySchemas = entity.getCommodities().stream().map(CommoditySchema::fromEntity).collect(Collectors.toList());
+            ShopTransactionSchema transaction = null;
+            if (entity.getShopTransaction() != null) {
+                transaction = ShopTransactionSchema.fromEntity(entity.getShopTransaction());
+            }
             return new ShopBillSchema(
                     entity.getCode(),
                     entity.getShop().getCode(),
                     entity.getShopAccount().getCode(),
                     commoditySchemas,
                     entity.getAmount(),
+                    transaction,
                     ShopAssistantSchema.fromEntity(entity.getOperator()),
                     entity.getCreateDateTime()
             );
@@ -151,11 +185,16 @@ public class ShopBillController {
         return entities.map(ShopBillSchema::fromEntity);
     }
 
+    @Data
+    public static class AddBillCommodityParams {
+        private String code;
+        private Integer quantity;
+    }
 
     @Data
     public static class AddBillRequest {
         private String accountCode;
-        private Map<String, Integer> commodities;
+        private List<AddBillCommodityParams> commodities;
     }
 
     @PostMapping("/shops/{shopCode}/bills")
@@ -165,8 +204,13 @@ public class ShopBillController {
             throw new ForbiddenOperationException("您没有权限执行这个操作");
         }
 
+        Map<String, Integer> commodities = new HashMap<>();
+        for (AddBillCommodityParams commodity : request.getCommodities()) {
+            commodities.put(commodity.code, commodity.quantity);
+        }
+
         ShopBill shopBill = this.shopService
-                .addBill(shopCode, request.getAccountCode(), request.getCommodities());
+                .addBill(shopCode, request.getAccountCode(), commodities);
 
         // 创建订单
         return ShopBillSchema.fromEntity(shopBill);
@@ -188,7 +232,7 @@ public class ShopBillController {
     @Data
     public static class ConfirmBillRequest {
         private String billCode;
-        private Map<String, Integer> commodities;
+        private List<AddBillCommodityParams> commodities;
         private BigDecimal amount;
     }
 
@@ -196,7 +240,12 @@ public class ShopBillController {
     @PostMapping("/shops/{shopCode}/payment")
     public ShopBillSchema confirmBill(@PathVariable String shopCode,
                                       @RequestBody ConfirmBillRequest request) {
-        ShopBill entity = this.shopService.confirmBill(shopCode, request.getBillCode(), request.getCommodities(), request.getAmount());
+        Map<String, Integer> commodities = new HashMap<>();
+        for (AddBillCommodityParams commodity : request.getCommodities()) {
+            commodities.put(commodity.code, commodity.quantity);
+        }
+
+        ShopBill entity = this.shopService.confirmBill(shopCode, request.getBillCode(), commodities, request.getAmount());
         // 确认支付
         return ShopBillSchema.fromEntity(entity);
     }
