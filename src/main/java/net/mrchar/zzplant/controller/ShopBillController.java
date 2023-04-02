@@ -3,6 +3,7 @@ package net.mrchar.zzplant.controller;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import net.mrchar.zzplant.exception.ForbiddenOperationException;
+import net.mrchar.zzplant.exception.ResourceNotExistsException;
 import net.mrchar.zzplant.model.ShopBill;
 import net.mrchar.zzplant.model.ShopBillCommodity;
 import net.mrchar.zzplant.repository.ShopBillRespository;
@@ -97,6 +98,20 @@ public class ShopBillController {
 
         Page<ShopBill> entities = this.shopBillRespository.findAllByShopCode(shopCode, pageable);
         return entities.map(ShopBillSchema::fromEntity);
+    }
+
+    @GetMapping("/shops/{shopCode}/bill/{billCode}")
+    @Transactional
+    public ShopBillSchema getBill(@PathVariable String shopCode, @PathVariable String billCode) {
+        boolean exists = this.shopService.operatorIsAssistant(shopCode);
+        if (!exists) {
+            throw new ForbiddenOperationException("您没有权限执行这个操作");
+        }
+
+        ShopBill entity = this.shopBillRespository.findOneByShopCodeAndCode(shopCode, billCode)
+                .orElseThrow(() -> new ResourceNotExistsException("订单不存在"));
+
+        return ShopBillSchema.fromEntity(entity);
     }
 
     @GetMapping("/shops/{shopCode}/accounts/{accountCode}/bills")

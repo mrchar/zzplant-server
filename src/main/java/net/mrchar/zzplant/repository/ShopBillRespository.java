@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -48,4 +49,13 @@ public interface ShopBillRespository extends JpaRepository<ShopBill, UUID> {
     @Query("select bill from ShopBill bill " +
             "where bill.shop.code = :shopCode and bill.shopAccount.code = :accountCode")
     Page<ShopBill> findAllByShopCodeAndAccountCode(String shopCode, String accountCode, Pageable pageable);
+
+    /**
+     * 查找商铺中指定订单
+     *
+     * @param shopCode 商铺编号
+     * @param billCode 订单编号
+     * @return 订单信息
+     */
+    Optional<ShopBill> findOneByShopCodeAndCode(String shopCode, String billCode);
 }
