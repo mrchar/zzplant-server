@@ -54,7 +54,11 @@
                 <constraints nullable="false"/>
             </column>
             <column name="gender" type="varchar(10)"/>
-            <column name="phone_number" type="varchar(50)"/>
+            <column name="phone_number" type="varchar(50)">
+                <constraints uniqueConstraintName="uk_user_has_one_phone_number"
+                             unique="true"
+                             nullable="false"/>
+            </column>
             <column name="account_id" type="uuid">
                 <constraints foreignKeyName="fk_user_has_one_account"
                              referencedTableName="account"

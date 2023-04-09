@@ -36,6 +36,7 @@ public class SecurityConfiguration {
         configuration.setAllowedOrigins(this.properties.getOrigins());
         configuration.setAllowedMethods(this.properties.getMethods());
         configuration.setAllowedHeaders(this.properties.getHeaders());
+        configuration.setExposedHeaders(this.properties.getExposedHeaders());
         configuration.setAllowCredentials(this.properties.isWithCredentials());
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

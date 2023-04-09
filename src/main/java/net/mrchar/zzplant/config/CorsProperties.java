@@ -11,5 +11,6 @@ public class CorsProperties {
     private List<String> origins;
     private List<String> methods = List.of("GET", "POST", "PUT", "DELETE", "OPTIONS");
     private List<String> headers = List.of("*");
+    private List<String> exposedHeaders = List.of("X-Auth-Token");
     private boolean withCredentials = true;
 }
