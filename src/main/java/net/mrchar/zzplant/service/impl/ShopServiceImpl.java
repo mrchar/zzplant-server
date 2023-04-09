@@ -1,6 +1,7 @@
 package net.mrchar.zzplant.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import net.mrchar.zzplant.exception.BalanceIsNotEnoughException;
 import net.mrchar.zzplant.exception.ResourceAlreadyExistsException;
 import net.mrchar.zzplant.exception.ResourceNotExistsException;
 import net.mrchar.zzplant.exception.UnExpectedException;
@@ -197,11 +198,25 @@ public class ShopServiceImpl implements ShopService {
     public ShopBill confirmBill(String shopCode, String billCode, Map<String, Integer> commodities, BigDecimal amount) {
         ShopBill entity = this.modifyBill(shopCode, billCode, commodities);
 
+        // 添加shopAccount表行锁
+        ShopAccount shopAccount = entity.getShopAccount();
+        shopAccount = this.shopAccountRepository.findOneByIdForUpdate(shopAccount.getId())
+                .orElseThrow(() -> new UnExpectedException("添加商铺账户行锁时失败"));
+
+        // 创建交易
+        if (shopAccount.getBalance().add(amount.negate()).compareTo(BigDecimal.ZERO) < 0) {
+            throw new BalanceIsNotEnoughException("账户余额不足以支付订单");
+        }
         ShopTransaction transaction = new ShopTransaction(entity.getShopAccount(), Type.PAYMENT, amount.negate());
         this.shopTransactionRepository.save(transaction);
 
+        // 关联订单和交易
         entity.setShopTransaction(transaction);
         this.shopBillRespository.save(entity);
+
+        // 修改剩余金额
+        shopAccount.setBalance(transaction.getCurrentBalance());
+        this.shopAccountRepository.save(shopAccount);
 
         return entity;
     }
