@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -209,19 +208,26 @@ public class ShopBillController {
             commodities.put(commodity.code, commodity.quantity);
         }
 
+        // 创建订单
         ShopBill shopBill = this.shopService
                 .addBill(shopCode, request.getAccountCode(), commodities);
 
-        // 创建订单
         return ShopBillSchema.fromEntity(shopBill);
     }
 
     @PutMapping("/shops/{shopCode}/bills/{billCode}/commodities")
     public List<CommoditySchema> updateBill(@PathVariable String shopCode,
                                             @PathVariable String billCode,
-                                            @RequestBody List<CommoditySchema> request) {
-        // 修改订单
-        return Collections.emptyList();
+                                            @RequestBody List<AddBillCommodityParams> request) {
+        Map<String, Integer> commodities = new HashMap<>();
+        for (AddBillCommodityParams commodity : request) {
+            commodities.put(commodity.code, commodity.quantity);
+        }
+
+        ShopBill shopBill = this.shopService.modifyBill(shopCode, billCode, commodities);
+        return shopBill.getCommodities().stream()
+                .map(CommoditySchema::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @DeleteMapping("/shops/{shopCode}/bills/{billCode}")
