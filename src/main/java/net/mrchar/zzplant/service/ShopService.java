@@ -26,15 +26,6 @@ public interface ShopService {
      */
     ShopAssistant addShopAssistant(String shopCode, String username, String phoneNumber);
 
-    /**
-     * 在商铺中添加商品
-     *
-     * @param shopCode
-     * @param name
-     * @param price
-     * @return
-     */
-    ShopCommodity addShopCommodity(String shopCode, String name, BigDecimal price);
 
     /**
      * 在商铺中添加会员

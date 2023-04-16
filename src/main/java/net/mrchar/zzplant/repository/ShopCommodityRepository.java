@@ -48,4 +48,15 @@ public interface ShopCommodityRepository extends JpaRepository<ShopCommodity, UU
      */
     @Query("select commodity from ShopCommodity commodity where commodity.shop.code = :shopCode and commodity.code in :commodityCodes")
     List<ShopCommodity> findAllByShopCodeAndCodeIn(String shopCode, Collection<String> commodityCodes);
+
+    /**
+     * 根据商铺编号和商品编号查找商品
+     *
+     * @param shopCode      商铺编号
+     * @param commodityCode 商品编号
+     * @return 商品信息
+     */
+    @Query("select commodity from ShopCommodity commodity " +
+            "where commodity.shop.code = :shopCode and commodity.code = :commodityCode")
+    Optional<ShopCommodity> findOneByShopCodeAndCode(String shopCode, String commodityCode);
 }
