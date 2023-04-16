@@ -74,22 +74,7 @@ public class ShopServiceImpl implements ShopService {
 
         return assistant;
     }
-
-    @Override
-    @Transactional
-    public ShopCommodity addShopCommodity(String shopCode, String name, BigDecimal price) {
-        Shop shop = this.shopRepository.findOneByCode(shopCode)
-                .orElseThrow(() -> new ResourceNotExistsException("店铺不存在"));
-
-        this.commodityRepository.findOneByShopAndName(shop, name)
-                .ifPresent((commodity) -> {
-                    throw new ResourceAlreadyExistsException("商品名称不能重复");
-                });
-
-        ShopCommodity shopCommodity = new ShopCommodity(name, price, false, shop);
-        return this.commodityRepository.save(shopCommodity);
-    }
-
+    
     @Override
     @Transactional
     public ShopAccount addShopAccount(String shopCode, String name, Gender gender, String phoneNumber, BigDecimal balance) {
